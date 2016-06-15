@@ -1,0 +1,32 @@
+version: '2'
+services:
+  node02:
+    image: mariadb-galera
+    container_name: node02
+    hostname: node02
+    restart: always
+    networks:
+     - mariadb
+    #ports:
+     #- 3306:3306
+    expose:
+     - "3306"
+     - "4567"
+     - "4444"
+    volumes:
+     - /mnt/mariadbcluster/node02:/var/lib/mysql
+    env_file:
+     - common.env
+    environment:
+     # This is set by the build script
+     - CLUSTER=node01,node02
+     # These are configured in swarm.conf
+     - CLUSTER_NAME=mariadbcluster
+     - MYSQL_ROOT_PASSWORD=secret
+     - SST_USER=sst
+     - SST_PASS=sst@secret
+networks:
+  mariadb:
+   external:
+    name: mariadb
+

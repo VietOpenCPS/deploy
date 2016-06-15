@@ -1,0 +1,53 @@
+#
+# Liferay default account:
+# - username: test@liferay.com
+# - password: test
+#
+# syntax: https://hub.docker.com/u/opencps/ 
+#
+
+version: "2"
+
+services:
+    liferay:
+        image: opencps/liferay-all-in-one
+        ports:
+          - "8080:8080"
+        links:
+          - mariadb
+        networks:
+          - front-tier
+          - back-tier
+
+    mariadb:
+        image: mariadb:10.1
+        volumes:
+            - ./mariadb-data/:/var/lib/mysql/
+            - ./mariadb-init-data/:/docker-entrypoint-initdb.d/
+            - ./mariadb-mycnf/my.cnf:/etc/mysql/my.cnf
+        environment:
+            - MYSQL_ROOT_PASSWORD=lab@secret
+            - MYSQL_USER=liferay
+            - MYSQL_PASSWORD=lab@123
+            - MYSQL_DATABASE=opencps10
+        ports:
+          - "3306:3306"
+        networks:
+          - back-tier
+        # hostname: mysql
+        #domainname: coclab.lan
+        # cpu_shares: 512             # 0.5 CPU
+        # mem_limit: 1073741824       # 1024 MB RAM
+        # memswap_limit: 0            # 0 MB SWAP
+        # privileged: true
+        # restart: always
+        # stdin_open: true
+        # tty: true
+
+# volumes:
+#     db-data:
+
+networks:
+    front-tier:
+    back-tier:
+
