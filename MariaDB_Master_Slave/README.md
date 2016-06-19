@@ -13,7 +13,7 @@ Triển khai Master-Slave với cấu hình đơn giản bằng:
 ####*(Chỉ dùng 1 trong 2 cách trên)*
 
 ###1 - Sử dụng Script để cài Master-Slave tự động
-Download từng Script về node tương ứng và chạy bằng câu lệnh sh
+Download từng Script Master.sh, Slave.sh về node tương ứng và chạy bằng câu lệnh sh
 ví dụ: 
 Trên Master Server:
 ```
