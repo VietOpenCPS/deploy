@@ -10,7 +10,7 @@ Triển khai Master-Slave với cấu hình đơn giản bằng:
 - Triển khai bằng script.
 - Triển khai theo hướng dẫn
 
-####*(Chỉ dùng 1 trong 2 cách trên)*
+####*(dùng cách 1 hoặc dùng cách 2, nếu bạn dùng Script thì không cần cài đặt theo hướng dẫn và ngược lại)*
 
 ###1 - Sử dụng Script để cài Master-Slave tự động
 Download từng Script Master.sh, Slave.sh về node tương ứng và chạy bằng câu lệnh sh
@@ -25,7 +25,7 @@ sh Slave.sh
 ```
 *Lưu ý: Sau khi trên Master Server chạy xong thì mới bắt đầu chạy Slave.sh trên Slave Server.*
 
-###2 - Hướng dẫn cài đặt Master-Slave 
+###2 - Hướng dẫn cài đặt Master-Slave thủ công
 ####Trên cả 2 Server:
 - Tạo Repository cho MariaDB:
 ```
