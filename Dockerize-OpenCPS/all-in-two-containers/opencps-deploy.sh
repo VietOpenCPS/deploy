@@ -26,7 +26,7 @@ chmod +x /usr/local/bin/docker-compose
 
 ######################## DEPLOYING OPENCPS APPLICATION ##################
 yum -y install svn
-svn export https://github.com/VietOpenCPS/deploy.git/trunk/Dockerize-OpenCPS/docker-compose
+svn export https://github.com/VietOpenCPS/deploy.git/trunk/Dockerize-OpenCPS/all-in-two-containers/docker-compose
 
 echo $DIR_CURR
 
