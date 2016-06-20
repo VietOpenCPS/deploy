@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!DOCTYPE plugin-package PUBLIC "-//Liferay//DTD Plugin Package 6.2.0//EN" "http://www.liferay.com/dtd/liferay-plugin-package_6_2_0.dtd">
+
+<plugin-package>
+	<name><![CDATA[Resources Importer]]> Web</name>
+	<module-id>liferay/resources-importer-web/6.2.0.4/war</module-id>
+	<recommended-deployment-context>resources-importer-web</recommended-deployment-context>
+	<required-deployment-contexts></required-deployment-contexts>
+	<types>
+		<type>web</type>
+	</types>
+	<tags>
+		<tag>configuration</tag>
+		<tag>lar</tag>
+		<tag>layout</tag>
+		<tag>package</tag>
+		<tag>theme</tag>
+		<tag>web content</tag>
+	</tags>
+	<short-description><![CDATA[]]></short-description>
+	<long-description><![CDATA[The Resources Importer app allows front-end developers to package web content, portlet configurations, and layouts together in a theme without saving it as a compiled .LAR file thereby allowing for greater flexibility in its usage between Liferay Portal versions.<br /><br />This app will automatically create associated content when other plugins are deployed that are configured to make use of the Resource Importer app.<br /><br />This app installs as a Liferay service.]]></long-description>
+	<change-log><![CDATA[]]></change-log>
+	<page-url>http://www.liferay.com</page-url>
+	<author><![CDATA[Liferay, Inc.]]></author>
+	<licenses>
+		<license osi-approved="true">LGPL</license>
+	</licenses>
+	<liferay-versions>
+		<liferay-version>6.2.0+</liferay-version>
+	</liferay-versions>
+</plugin-package>

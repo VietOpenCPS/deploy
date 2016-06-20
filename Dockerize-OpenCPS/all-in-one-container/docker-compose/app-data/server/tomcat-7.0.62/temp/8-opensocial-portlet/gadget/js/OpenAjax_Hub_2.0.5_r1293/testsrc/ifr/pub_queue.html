@@ -1,0 +1,62 @@
+<html>
+<head>
+    <title>Iframe Client</title>
+    
+    <script src="../config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="2";</script>
+    <script src="../util/loadHub.js"></script>
+    
+    <script src="../util/test_hub.js"></script>
+    <script src="../util/testHelper.js"></script>
+
+    <script type="text/javascript">
+        var hubClient;
+        var test;
+        
+        function init()
+        {
+            new TestHubClient( "iframe", function( testHubClient ) {
+                
+                test = testHubClient;
+                
+                hubClient = new OpenAjax.hub.IframeHubClient({
+                        HubClient: {
+                            onSecurityAlert: function() {},
+                            log: test.log
+                        }
+                });
+                hubClient.connect( onHubClientConnect );
+                
+            });
+        }
+        
+        function onHubClientConnect()
+        {
+            var a1_hit = false;
+            function onData( topic, data ) {
+                if ( data == "A1" ) {
+                    a1_hit = true;
+                    hubClient.publish( "pub.queue.topic2", "A2" );
+                } else if ( data == "A2" ) {
+                    // if publishes are properly ordered, then we should get "A1" before
+                    // we get "A2"
+                    test.assertTrue( a1_hit, "received 'A2' pub event before 'A1'" );
+                    test.callback( true, hubClient.getClientID() );
+                }
+            }
+            hubClient.subscribe( "pub.queue.topic1", onData );
+            hubClient.subscribe( "pub.queue.topic2", onData );
+
+            test.onMsg = function( data ) {
+                var expectedMsg = "publish." + hubClient.getClientID();
+                if ( data == expectedMsg ) {
+                    hubClient.publish( "pub.queue.topic1", "A1" );
+                }
+            };
+        }
+    </script>
+</head>
+
+<body onload="init();">
+</body>
+</html>

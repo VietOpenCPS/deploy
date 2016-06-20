@@ -1,0 +1,145 @@
+<html>
+<head>
+    <title>Iframe Client</title>
+    
+    <script src="../config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="2";</script>
+    <script src="../util/loadHub.js"></script>
+    
+    <script src="../util/test_hub.js"></script>
+    <script src="../util/testHelper.js"></script>
+    
+    <script type="text/javascript">
+        var hubClient;
+        var test;
+        
+        function init()
+        {
+            new TestHubClient( "iframe", function( testHubClient ) {
+                
+                test = testHubClient;
+                
+                hubClient = new OpenAjax.hub.IframeHubClient({
+                        HubClient: {
+                            onSecurityAlert: function() {},
+                            log: test.log
+                        }
+                });
+                hubClient.connect( onHubClientConnect );
+                
+            });
+        }
+        
+        function onHubClientConnect()
+        {
+            var sid1 = hubClient.subscribe( "hub.unsub.topic", subOnData, null, subOnComplete );
+            var sid2 = hubClient.subscribe( "hub.unsub.topic", subOnData, null, subOnComplete );
+
+
+            //----- TESTS -----//
+
+            var oncomp_count = 0;
+            function subOnComplete( item, success, error ) {
+                setTimeout ( function() {
+                        oncomp_count++;
+                        if ( oncomp_count == 2 ) {
+                            // we are subscribed -- start stage 1
+                            stage1();
+                        }
+                    }, 0
+                );
+            }
+
+            var unsubscribed = false;
+            var ondata_count = 0;
+            function subOnData( topic, data ) {
+                test.assertFalse( unsubscribed, "onData called after unsubscribe" );
+                test.assertEqual( "hello", data );
+                ondata_count++;
+                if ( ondata_count == 2 ) {
+                    // we get called twice, for each subscription -- start stage 2
+                    setTimeout( function() {
+                            stage2();
+                        }, 0
+                    );
+                }
+            }
+
+            function stage1() {
+                hubClient.publish( "hub.unsub.topic", "hello" );
+            }
+
+            function stage2() {
+                // test for BadParameters...
+
+                // test with no 'subscriptionID' param
+                testHelper.assertErrorMsg(
+                    OpenAjax.hub.Error.BadParameters,                           // expected error msg
+                    hubClient,                                                  // scope
+                    "unsubscribe",                                              // function name
+                    [ null ],                                                   // args
+                    "no 'subscriptionID' param",
+                    test
+                );
+
+
+                // test 'onComplete' and 'scope'
+
+                // unsubscribe with no scope
+                hubClient.unsubscribe( sid1,
+                        function( item, success, error ) {
+                            test.assertTrue( success );
+                            test.assertEqual( window, this );
+                        }
+                );
+
+                // unsubscribe with a scope
+                function MyObject() {
+                    this.onComplete = function( item, success, error ) {
+                        test.assertTrue( success );
+                        test.assertEqual( myObject, this );
+                    }
+                }
+                var myObject = new MyObject();
+                hubClient.unsubscribe( sid2, myObject.onComplete, myObject );
+
+
+                // test that subscribe's onData doesn't get called after having
+                // unsubscribed
+                unsubscribed = true;
+                hubClient.publish( "hub.unsub.topic", "goodbye" );
+                
+
+                // run remainder of test in setTimeout in order to give
+                // opportunity for above 'publish' to be handled
+                setTimeout( function() {
+                        // test that unsubscribing from already subscribed ID throws error
+                        testHelper.assertErrorMsg(
+                            OpenAjax.hub.Error.NoSubscription,                          // expected error msg
+                            hubClient,                                                  // scope
+                            "unsubscribe",                                              // function name
+                            [ sid1 ],                                                   // args
+                            "unsubscribing from already unsubscribed ID",
+                            test
+                        );
+                        // test that unsubscribing from invalid ID throws error
+                        testHelper.assertErrorMsg(
+                            OpenAjax.hub.Error.NoSubscription,                          // expected error msg
+                            hubClient,                                                  // scope
+                            "unsubscribe",                                              // function name
+                            [ "nonsense" ],                                             // args
+                            "unsubscribing from invalid ID",
+                            test
+                        );
+
+                        test.callback( true );
+                    }, 0
+                );
+            }
+        }
+    </script>
+</head>
+
+<body onload="init();">
+</body>
+</html>

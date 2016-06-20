@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<custom-sql>
+	<sql id="org.opencps.processmgt.service.persistence.ServiceProcessFinder.searchProcess">	
+		<![CDATA[
+			SELECT
+				opencps_serviceprocess.*
+			FROM
+				opencps_serviceprocess
+			WHERE
+				(groupId = ?) 
+			AND	
+				((lower(opencps_serviceprocess.processName) LIKE ? [$AND_OR_NULL_CHECK$]) OR (lower(opencps_serviceprocess.processNo) LIKE ? [$AND_OR_NULL_CHECK$]))
+		]]>
+	</sql>
+	<sql id="org.opencps.processmgt.service.persistence.ServiceProcessFinder.countProcess">	
+		<![CDATA[
+			SELECT
+				count(*) AS COUNT_VALUE
+			FROM
+				opencps_serviceprocess
+			WHERE
+				(groupId = ?) 
+			AND	
+				((lower(opencps_serviceprocess.processName) LIKE ? [$AND_OR_NULL_CHECK$]) OR (lower(opencps_serviceprocess.processNo) LIKE ? [$AND_OR_NULL_CHECK$]))
+		]]>
+	</sql>
+	
+	<sql id="org.opencps.processmgt.service.persistence.ProcessOrderFinder.countProcessOrder">	
+		<![CDATA[
+			SELECT 
+				COUNT(DISTINCT opencps_processorder.processOrderId) AS COUNT_VALUE
+			FROM 
+				opencps_processorder
+			INNER JOIN
+				opencps_dossier
+			ON
+				opencps_processorder.dossierId = opencps_dossier.dossierId
+			INNER JOIN
+				opencps_serviceinfo 
+			ON 
+				opencps_processorder.serviceInfoId = opencps_serviceinfo.serviceinfoId
+			INNER JOIN
+				opencps_processstep
+			ON
+				opencps_processorder.processStepId = opencps_processstep.processStepId
+			AND 
+				opencps_processstep.processStepId = ?
+			WHERE
+				opencps_processorder.processStepId IN 
+			(
+				SELECT
+					opencps_stepallowance.processStepId 
+				FROM 
+					opencps_stepallowance
+                INNER JOIN 
+					(
+						SELECT 
+							role_.roleId 
+						FROM role_ 
+						INNER JOIN 
+							users_roles 
+						ON 
+							role_.roleId = users_roles.roleId 
+						WHERE 
+							users_roles.userId = ?
+					) AS role
+                ON
+					opencps_stepallowance.roleId = role.roleId
+            )
+            OR
+				opencps_processorder.assignToUserId = ?
+		]]>
+	</sql>
+	
+	<sql id="org.opencps.processmgt.service.persistence.ProcessOrderFinder.searchProcessOrder">	
+		<![CDATA[
+			SELECT 
+				DISTINCT
+                opencps_processorder.*, 
+				opencps_dossier.serviceConfigId,
+				opencps_dossier.subjectId,
+				opencps_dossier.subjectName,
+				opencps_dossier.receptionNo,
+				opencps_serviceinfo.serviceName,
+				opencps_processstep.stepName,
+				opencps_processstep.sequenceNo,
+				opencps_processstep.daysDuration,
+				opencps_processstep.referenceDossierPartId
+			FROM 
+				opencps_processorder
+			INNER JOIN
+				opencps_dossier
+			ON
+				opencps_processorder.dossierId = opencps_dossier.dossierId
+			INNER JOIN
+				opencps_serviceinfo 
+			ON 
+				opencps_processorder.serviceInfoId = opencps_serviceinfo.serviceinfoId
+			INNER JOIN
+				opencps_processstep
+			ON
+				opencps_processorder.processStepId = opencps_processstep.processStepId
+			AND 
+				opencps_processstep.processStepId = ?
+			WHERE
+				opencps_processorder.processStepId IN 
+			(
+				SELECT
+					opencps_stepallowance.processStepId 
+				FROM 
+					opencps_stepallowance
+                INNER JOIN 
+					(
+						SELECT 
+							role_.roleId 
+						FROM role_ 
+						INNER JOIN 
+							users_roles 
+						ON 
+							role_.roleId = users_roles.roleId 
+						WHERE 
+							users_roles.userId = ?
+					) AS role
+                ON
+					opencps_stepallowance.roleId = role.roleId
+            )
+            OR
+				opencps_processorder.assignToUserId = ?
+		]]>
+	</sql>
+	
+	<sql id="org.opencps.processmgt.service.persistence.ProcessOrderFinder.getUserProcessStep">	
+		<![CDATA[
+			SELECT 
+				DISTINCT
+                opencps_processstep.processStepId, 
+				opencps_processstep.stepName
+			FROM 
+				opencps_processorder
+			INNER JOIN
+				opencps_dossier
+			ON
+				opencps_processorder.dossierId = opencps_dossier.dossierId
+			INNER JOIN
+				opencps_serviceinfo 
+			ON 
+				opencps_processorder.serviceInfoId = opencps_serviceinfo.serviceinfoId
+			INNER JOIN
+				opencps_processstep
+			ON
+				opencps_processorder.processStepId = opencps_processstep.processStepId
+			WHERE
+				opencps_processorder.processStepId IN 
+			(
+				SELECT
+					opencps_stepallowance.processStepId 
+				FROM 
+					opencps_stepallowance
+                INNER JOIN 
+					(
+						SELECT 
+							role_.roleId 
+						FROM role_ 
+						INNER JOIN 
+							users_roles 
+						ON 
+							role_.roleId = users_roles.roleId 
+						WHERE 
+							users_roles.userId = ?
+					) AS role
+                ON
+					opencps_stepallowance.roleId = role.roleId
+            )
+            OR
+				opencps_processorder.assignToUserId = ?
+		]]>
+	</sql>
+</custom-sql>

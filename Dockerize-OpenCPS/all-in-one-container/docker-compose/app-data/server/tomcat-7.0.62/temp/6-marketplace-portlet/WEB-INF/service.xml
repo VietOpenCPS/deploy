@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 6.2.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_6_2_0.dtd">
+
+<service-builder package-path="com.liferay.marketplace">
+	<author>Ryan Park</author>
+	<namespace>Marketplace</namespace>
+	<entity name="App" uuid="true" local-service="true" remote-service="true">
+		<!-- PK fields -->
+		<column name="appId" type="long" primary="true"></column>
+		<!-- Audit fields -->
+		<column name="companyId" type="long"></column>
+		<column name="userId" type="long"></column>
+		<column name="userName" type="String"></column>
+		<column name="createDate" type="Date"></column>
+		<column name="modifiedDate" type="Date"></column>
+		<!-- Other fields -->
+		<column name="remoteAppId" type="long"></column>
+		<column name="title" type="String"></column>
+		<column name="description" type="String"></column>
+		<column name="category" type="String"></column>
+		<column name="iconURL" type="String"></column>
+		<column name="version" type="String"></column>
+		<!-- Finder methods -->
+		<finder name="CompanyId" return-type="Collection">
+			<finder-column name="companyId"></finder-column>
+		</finder>
+		<finder name="RemoteAppId" return-type="App">
+			<finder-column name="remoteAppId"></finder-column>
+		</finder>
+		<finder name="Category" return-type="Collection">
+			<finder-column name="category"></finder-column>
+		</finder>
+	</entity>
+	<entity name="Module" uuid="true" local-service="true" remote-service="false">
+		<!-- PK fields -->
+		<column name="moduleId" type="long" primary="true"></column>
+		<!-- Other fields -->
+		<column name="appId" type="long"></column>
+		<column name="bundleSymbolicName" type="String"></column>
+		<column name="bundleVersion" type="String"></column>
+		<column name="contextName" type="String"></column>
+		<!-- Finder methods -->
+		<finder name="AppId" return-type="Collection">
+			<finder-column name="appId"></finder-column>
+		</finder>
+		<finder name="BundleSymbolicName" return-type="Collection">
+			<finder-column name="bundleSymbolicName"></finder-column>
+		</finder>
+		<finder name="ContextName" return-type="Collection">
+			<finder-column name="contextName"></finder-column>
+		</finder>
+		<finder name="A_CN" return-type="Module">
+			<finder-column name="appId"></finder-column>
+			<finder-column name="contextName"></finder-column>
+		</finder>
+		<finder name="A_BSN_BV" return-type="Module">
+			<finder-column name="appId"></finder-column>
+			<finder-column name="bundleSymbolicName"></finder-column>
+			<finder-column name="bundleVersion"></finder-column>
+		</finder>
+	</entity>
+	<exceptions>
+		<exception>AppProperties</exception>
+		<exception>AppTitle</exception>
+		<exception>AppVersion</exception>
+		<exception>DuplicateApp</exception>
+		<exception>ModuleNamespace</exception>
+	</exceptions>
+</service-builder>

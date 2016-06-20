@@ -1,0 +1,60 @@
+<html>
+<head>
+    <title>Malicious Client</title>
+    
+    <script src="../config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="2";</script>
+    <script src="../util/loadHub.js"></script>
+
+    <script src="../util/test_hub.js"></script>
+    <script src="../util/testHelper.js"></script>
+
+    <script type="text/javascript">
+        var hubClient;
+        var test;
+    
+        function init()
+        {
+            new TestHubClient( "iframe", function( tester ) {
+                
+                test = tester;
+                
+                hubClient = new OpenAjax.hub.IframeHubClient({
+                        HubClient: {
+                            onSecurityAlert: function() {},
+                            log: test.log
+                        }
+                });
+                hubClient.connect( onConnect );
+                
+            });
+        }
+        
+        function onConnect( item, success, error )
+        {
+            test.assertEqual( hubClient, item, "connect() onComplete returned wrong item" );
+            test.assertTrue( success, "connect() failed with error: " + error );
+            
+            hubClient.subscribe( "redirect.bar", onBar, null, onSubscribe );
+        }
+        
+        function onSubscribe( item, success, error ) {
+            test.assertTrue( success, "subscribe() failed with error: " + error );
+            
+            // now that we are subscribed, we can publish to parent
+            hubClient.publish( "redirect.foo", "hello" );
+        }
+
+        function onBar( topic, data )
+        {
+            test.assertEqual( "redirect.bar", topic );
+            test.assertEqual( "goodbye", data );
+            
+            hubClient.publish( "redirect.baz", "see you later" );
+        }
+    </script>
+</head>
+
+<body onload="init();">
+</body>
+</html>

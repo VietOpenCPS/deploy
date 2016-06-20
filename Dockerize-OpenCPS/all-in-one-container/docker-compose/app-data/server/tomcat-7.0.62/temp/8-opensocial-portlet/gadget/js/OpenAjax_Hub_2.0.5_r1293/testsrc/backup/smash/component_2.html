@@ -1,0 +1,121 @@
+<!-- (C) Copyright IBM Corp. 2007 -->
+
+<html>
+	<head>
+		<!-- smash -->
+		<script src="../../smash/json2.js"></script>
+		<script src="../../smash/smash.js"></script>
+                <!-- crypto.js is optional -->
+		<script src="../../smash/crypto.js"></script>
+		<!-- Application logic -->
+		<script type="text/javascript">
+			var theTopic="topic1";
+			var myName = "c2:";
+			var connHandle=null;
+			var subHandle = null;
+			var csubHandle = null;
+			var counter=0;
+			function subscribeCallback(success, handle) {
+				if (!success) {
+					alert(myName + "subscribe topic=" + handle.getTopic() + " failed on subscribeCallback");
+				} else {
+					alert(myName + "subscribe topic=" + handle.getTopic() + " succeeded on subscribeCallback");
+				}
+				isSubscribed = handle.isSubscribed();
+				if (isSubscribed != success)
+					alert("bug2");
+				if (handle.getTopic() == theTopic)
+					subHandle = handle;
+				else
+					csubHandle = handle;
+			}
+			function unsubscribeCallback(success, handle) {
+				if (!success) {
+					alert(myName + "unsubscribe topic=" + handle.getTopic() + " failed on unsubscribeCallback");
+				}
+				else {
+					alert(myName + "unsubscribe topic=" + handle.getTopic() + " succeeded on unsubscribeCallback");
+				}		
+			}
+			function connectCallback(success, handle) {
+				connHandle = handle;
+				if (!success) {
+					alert(myName + "connection failed on connectCallback");
+				}
+				connHandle.setSecurityErrorCallback(errorCallback);
+				// subscribe to the only channel
+				resubscribe(theTopic);
+			}
+			function errorCallback(errormsg) {
+				alert(myName + "eror message:" + errormsg);
+			}				
+			function init(useCryptoRandom){
+				if (useCryptoRandom) {
+					var seed = "";
+					var cdate;
+					while (seed.length < 12) {
+						// should use a better seed than this
+						cdate = new Date();
+						seed += cdate.getTime();
+					}
+					var prng = smash.crypto.newPRNG(seed);
+					smash.configure({prng: prng});
+				}
+				connHandle = smash.connect({callback: connectCallback});
+				if (!connHandle) {
+					alert(myName + "connection failed");
+				}
+			}
+			function channelListener(subHandle, topic, message) {
+				if (typeof message == "string")			
+					alert(myName + " Heard on topic\n\n: "+ topic + "\n\nString Message: " + message);
+				else
+					alert(myName + " Heard on topic\n\n: "+ topic + "\n\nJSON Message: " 
+						+ JSON.stringify(message));
+			}                       		
+			function sendMessage(topicName) {			
+				counter++;
+				if (counter%2 == 0)
+					connHandle.publish(topicName, (myName + "Hi " + counter));
+				else
+					connHandle.publish(topicName, {sender: myName, content: ("Hi " + counter)});
+			}
+			function unsubscribe() {
+				subHandle.unsubscribe(unsubscribeCallback);
+			}
+			function resubscribe(topicName) {
+				connHandle.subscribe(topicName, subscribeCallback, channelListener);
+			}
+			function resubscribeC() {
+				var ctopic = document.getElementById("t2").value;
+				resubscribe(ctopic);
+			}
+			function unsubscribeC() {
+				csubHandle.unsubscribe(unsubscribeCallback);
+			}
+			function sendCMessage() {
+				var ctopic = document.getElementById("t2").value;
+				sendMessage(ctopic);
+			}
+			function getManagerDomain() {
+				alert(connHandle.getManagerDomain());
+			}
+
+		</script>
+	</head>
+	<body>
+		<p>Component 2</p>
+		<input type="button" onclick="init(false)" value="initialize and connect">
+		<input type="button" onclick="init(true)" value="initialize and connect using crypto random">
+		<input type="button" onclick="sendMessage(theTopic);" value="Publish message on topic1">
+		<input type="button" onclick="unsubscribe()" value="unsubscribe to topic1">				
+		<input type="button" onclick="resubscribe(theTopic)" value="resubscribe to topic1">
+		<input type="button" onclick="getManagerDomain()" value="get the manager domain">
+
+		configurable topic <input type="text" size=20 id="t2" value="abc.def.*" />
+		<input type="button" onclick="unsubscribeC()" value="unsubscribe to configurable topic">	
+		<input type="button" onclick="resubscribeC()" value="resubscribe to configurable topic">
+		<input type="button" onclick="sendCMessage()" value="Distribute a message on config topic">
+				
+	</body>
+</html>

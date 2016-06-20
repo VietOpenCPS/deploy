@@ -1,0 +1,99 @@
+<html>
+<head>
+    <title>Iframe Client</title>
+    
+    <script src="../config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="2";</script>
+    <script src="../util/loadHub.js"></script>
+    
+    <script src="../util/test_hub.js"></script>
+    <script src="../util/testHelper.js"></script>
+    
+    <script type="text/javascript">
+        var hubClient;
+        var test;
+        
+        function init()
+        {
+            new TestHubClient( "iframe", function( testHubClient ) {
+                
+                test = testHubClient;
+                
+                hubClient = new OpenAjax.hub.IframeHubClient({
+                        HubClient: {
+                            onSecurityAlert: function() {},
+                            log: test.log
+                        }
+                });
+                hubClient.connect( onHubClientConnect );
+                
+            });
+        }
+        
+        function onHubClientConnect()
+        {
+            try {
+                // subscribe with no scope and no subscriberData
+                var sub1 = hubClient.subscribe( "hub.getsubscriberdata.null",
+                        function() {} );
+
+                // subscribe with no scope and a String subscriberData
+                var subData2 = "This is a string!";
+                var sub2 = hubClient.subscribe( "hub.getsubscriberdata.str",
+                        function() {},
+                        null,
+                        null,
+                        subData2
+                );
+
+                // subscribe with scope and an Object subscriberData
+                var subData3 = { height: "200px", margin: 10 };
+                function MyObject() {
+                }
+                var myObject = new MyObject();
+                var sub3 = hubClient.subscribe( "hub.getsubscriberdata.obj",
+                        function() {},
+                        myObject,
+                        null,
+                        subData3
+                );
+
+                // test getSubscriberData
+                var sd = hubClient.getSubscriberData( sub1 );
+                test.assertTrue( typeof sd === "undefined" || sd == null );
+                test.assertEqual( subData2, hubClient.getSubscriberData( sub2 ) );
+                test.assertEqual( subData3, hubClient.getSubscriberData( sub3 ) );
+                testHelper.assertErrorMsg(
+                    OpenAjax.hub.Error.NoSubscription,                          // expected error msg
+                    hubClient,                                                  // scope
+                    "getSubscriberData",                                        // function name
+                    [ "nonsense" ],                                             // args
+                    "call getSubscriberData with invalid ID",
+                    test
+                );
+
+                // test getSubscriberScope
+                test.assertEqual( window, hubClient.getSubscriberScope( sub1 ) );
+                test.assertEqual( window, hubClient.getSubscriberScope( sub2 ) );
+                test.assertEqual( myObject, hubClient.getSubscriberScope( sub3 ) );
+                testHelper.assertErrorMsg(
+                    OpenAjax.hub.Error.NoSubscription,                          // expected error msg
+                    hubClient,                                                  // scope
+                    "getSubscriberScope",                                       // function name
+                    [ "nonsense" ],                                             // args
+                    "call getSubscriberScope with invalid ID",
+                    test
+                );
+            } catch( e ) {
+                test.errback( e.message );
+                return;
+            }
+
+            test.callback( true );
+        }
+    </script>
+</head>
+
+<body onload="init();">
+</body>
+</html>

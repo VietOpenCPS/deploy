@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<custom-sql>
+	<sql id="org.opencps.servicemgt.service.persistence.TemplateFileFinder.searchTemplateFile">	
+		<![CDATA[
+			SELECT
+				opencps_templatefile.*
+			FROM
+				opencps_templatefile
+			WHERE
+				(groupId = ?) 
+			AND
+				((lower(opencps_templatefile.fileName) LIKE ? [$AND_OR_NULL_CHECK$]) OR (lower(opencps_templatefile.fileNo) LIKE ? [$AND_OR_NULL_CHECK$]))
+		]]>
+	</sql>
+	<sql id="org.opencps.servicemgt.service.persistence.TemplateFileFinder.countTemplateFile">	
+		<![CDATA[
+			SELECT
+				count(*) AS COUNT_VALUE
+			FROM
+				opencps_templatefile
+			WHERE
+				(groupId = ?) 
+			AND
+				((lower(opencps_templatefile.fileName) LIKE ? [$AND_OR_NULL_CHECK$]) OR (lower(opencps_templatefile.fileNo) LIKE ? [$AND_OR_NULL_CHECK$]))
+		]]>
+	</sql>
+
+	<sql id="org.opencps.servicemgt.service.persistence.ServiceInfoFinder.searchService">	
+		<![CDATA[
+			SELECT
+				opencps_serviceinfo.*
+			FROM
+				opencps_serviceinfo
+			WHERE
+				groupId = ?
+			AND (
+				(lower(opencps_serviceinfo.serviceName) LIKE ? [$AND_OR_NULL_CHECK$]) OR (lower(opencps_serviceinfo.shortName) LIKE ? [$AND_OR_NULL_CHECK$])
+			 )
+			AND (opencps_serviceinfo.administrationCode = ?)
+			AND (opencps_serviceinfo.domainCode = ?)
+		]]>
+	</sql>
+
+	<sql id="org.opencps.servicemgt.service.persistence.ServiceInfoFinder.countService">	
+		<![CDATA[
+			SELECT
+				count(*) AS COUNT_VALUE
+			FROM
+				opencps_serviceinfo
+			WHERE
+				groupId = ?
+			AND (
+				(lower(opencps_serviceinfo.serviceName) LIKE ? [$AND_OR_NULL_CHECK$]) OR (lower(opencps_serviceinfo.shortName) LIKE ? [$AND_OR_NULL_CHECK$])
+			 )
+			AND (opencps_serviceinfo.administrationCode = ?)
+			AND (opencps_serviceinfo.domainCode = ?)
+		]]>
+	</sql>
+</custom-sql>

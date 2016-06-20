@@ -1,0 +1,108 @@
+.bottom-horizontal-line{
+	border-bottom: 1px solid #ccc;
+	clear: both;
+	display: block;
+	margin-bottom: 10px;
+	margin-top: 10px;
+}
+
+.input90{
+	width : 90% !important;
+}
+
+.input95{
+	width : 95% !important;
+}
+
+.input96{
+	width : 96% !important;
+}
+
+.input97{
+	width : 97% !important;
+}
+
+.input100{
+	width : 100% !important;
+}
+
+.input50{
+	width : 50% !important;
+}
+
+.input60{
+	width : 60% !important;
+}
+
+.input30{
+	width : 30% !important;
+}
+
+.input40{
+	width : 40% !important;
+}
+
+.input50{
+	width : 50% !important;
+}
+
+.input60{
+	width : 60% !important;
+}
+
+.input30{
+	width : 30% !important;
+}
+
+.input70{
+	width : 70% !important;
+}
+
+.input40{
+	width : 40% !important;
+}
+
+.input30_1 select {
+	width: 150px !important;
+}
+
+
+.ocps-editor {
+	margin-bottom: 10px;
+	height: 50px;
+}
+
+.cke_contents {
+	height: 150px !important;
+}
+
+.opcps-rows {
+	margin-bottom: 15px;
+}
+
+.txtarea-medium {
+	width : 95% !important;
+}
+
+.opencps-icon{
+	display: block;
+	background-image: url("/sprite/html/themes/classic/images/common/_sprite.png");
+	background-repeat: no-repeat;
+	height: 16px;
+    width: 16px
+}
+.opencps-icon.checked{
+    background-position: 50% -336px;
+}
+
+.opencps-icon.removed{
+    background-position: 50% -368px;
+}
+
+.opencps-icon.employees{
+    background-position: 50% -1589px;
+}
+
+.opencps-icon.not-employee{
+    background-position: 50% -769px;
+}

@@ -1,0 +1,1123 @@
+STATEMENT_CONNECTION_VALIDATION_QUERY = \
+    select 1
+STATEMENT_CREATE_AUTHORITIES_TABLE = \
+    CREATE TABLE jam_authorities ( \
+      username VARCHAR(100) NOT NULL, \
+      authority VARCHAR(30) NOT NULL, \
+      CONSTRAINT jam_u_auth UNIQUE (username, authority), \
+      CONSTRAINT jam_f_auth_username FOREIGN KEY (username) REFERENCES jam_users(username), \
+      CONSTRAINT jam_f_auth_authority FOREIGN KEY (authority) REFERENCES jam_role(role_name) \
+    )
+STATEMENT_CREATE_CATEGORY_TABLE = \
+    CREATE TABLE jam_category ( \
+      child_topic_id INTEGER NOT NULL, \
+      category_name VARCHAR(200) NOT NULL, \
+      sort_key VARCHAR(200), \
+      CONSTRAINT jam_p_category PRIMARY KEY (child_topic_id, category_name), \
+      CONSTRAINT jam_f_cat_child_id FOREIGN KEY (child_topic_id) REFERENCES jam_topic(topic_id) \
+    )
+STATEMENT_CREATE_CATEGORY_INDEX = \
+    CREATE INDEX jam_i_category_cti on jam_category (child_topic_id) 
+STATEMENT_CREATE_CONFIGURATION_TABLE = \
+    CREATE TABLE jam_configuration ( \
+      config_key VARCHAR(50) NOT NULL, \
+      config_value VARCHAR(500) NOT NULL, \
+      CONSTRAINT jam_p_config PRIMARY KEY (config_key) \
+    )
+STATEMENT_CREATE_GROUP_AUTHORITIES_TABLE = \
+    CREATE TABLE jam_group_authorities ( \
+      group_id INTEGER NOT NULL, \
+      authority VARCHAR(30) NOT NULL, \
+      CONSTRAINT jam_u_gauth UNIQUE (group_id, authority), \
+      CONSTRAINT jam_f_gauth_group FOREIGN KEY (group_id) REFERENCES jam_group(group_id), \
+      CONSTRAINT jam_f_gauth_authority FOREIGN KEY (authority) REFERENCES jam_role(role_name) \
+    )
+STATEMENT_CREATE_GROUP_MEMBERS_TABLE = \
+    CREATE TABLE jam_group_members ( \
+      id INTEGER NOT NULL, \
+      username VARCHAR(100) NOT NULL, \
+      group_id INTEGER NOT NULL, \
+      CONSTRAINT jam_p_gmemb PRIMARY KEY (id), \
+      CONSTRAINT jam_f_gmemb_username FOREIGN KEY (username) REFERENCES jam_users(username), \
+      CONSTRAINT jam_f_gmemb_group FOREIGN KEY (group_id) REFERENCES jam_group(group_id) \
+    )
+STATEMENT_CREATE_GROUP_TABLE = \
+    CREATE TABLE jam_group ( \
+      group_id INTEGER NOT NULL, \
+      group_name VARCHAR(30) NOT NULL, \
+      group_description VARCHAR(200), \
+      CONSTRAINT jam_p_group PRIMARY KEY (group_id), \
+      CONSTRAINT jam_u_group_name UNIQUE (group_name) \
+    )
+STATEMENT_CREATE_INTERWIKI_TABLE = \
+    CREATE TABLE jam_interwiki ( \
+      interwiki_prefix VARCHAR(30) NOT NULL, \
+      interwiki_pattern VARCHAR(200) NOT NULL, \
+      interwiki_display VARCHAR(30) NOT NULL, \
+      interwiki_type INTEGER NOT NULL, \
+      CONSTRAINT jam_p_interw PRIMARY KEY (interwiki_prefix) \
+    )
+STATEMENT_CREATE_LOG_TABLE = \
+    CREATE TABLE jam_log ( \
+      log_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL, \
+      virtual_wiki_id INTEGER NOT NULL, \
+      wiki_user_id INTEGER, \
+      display_name VARCHAR(200) NOT NULL, \
+      topic_id INTEGER, \
+      topic_version_id INTEGER, \
+      log_type INTEGER NOT NULL, \
+      log_comment VARCHAR(200), \
+      log_params VARCHAR(500), \
+      CONSTRAINT jam_f_log_wuser FOREIGN KEY (wiki_user_id) REFERENCES jam_wiki_user(wiki_user_id), \
+      CONSTRAINT jam_f_log_topic_ver FOREIGN KEY (topic_version_id) REFERENCES jam_topic_version(topic_version_id), \
+      CONSTRAINT jam_f_log_topic FOREIGN KEY (topic_id) REFERENCES jam_topic(topic_id), \
+      CONSTRAINT jam_f_log_vwiki FOREIGN KEY (virtual_wiki_id) REFERENCES jam_virtual_wiki(virtual_wiki_id) \
+    )
+STATEMENT_CREATE_NAMESPACE_TABLE = \
+    CREATE TABLE jam_namespace ( \
+      namespace_id INTEGER NOT NULL, \
+      namespace VARCHAR(200) NOT NULL, \
+      main_namespace_id INTEGER, \
+      CONSTRAINT jam_p_namesp PRIMARY KEY (namespace_id), \
+      CONSTRAINT jam_u_namesp_namesp UNIQUE (namespace), \
+      CONSTRAINT jam_f_namesp_namesp FOREIGN KEY (main_namespace_id) REFERENCES jam_namespace(namespace_id) \
+    )
+STATEMENT_CREATE_NAMESPACE_TRANSLATION_TABLE = \
+    CREATE TABLE jam_namespace_translation ( \
+      namespace_id INTEGER NOT NULL, \
+      virtual_wiki_id INTEGER NOT NULL, \
+      namespace VARCHAR(200) NOT NULL, \
+      CONSTRAINT jam_p_namesptr PRIMARY KEY (namespace_id, virtual_wiki_id), \
+      CONSTRAINT jam_f_namesptr_namesp FOREIGN KEY (namespace_id) REFERENCES jam_namespace(namespace_id), \
+      CONSTRAINT jam_f_namesptr_vwiki FOREIGN KEY (virtual_wiki_id) REFERENCES jam_virtual_wiki(virtual_wiki_id), \
+      CONSTRAINT jam_u_namesptr_namesp UNIQUE (virtual_wiki_id, namespace) \
+    )
+STATEMENT_CREATE_RECENT_CHANGE_TABLE = \
+    CREATE TABLE jam_recent_change ( \
+      topic_version_id INTEGER, \
+      previous_topic_version_id INTEGER, \
+      topic_id INTEGER, \
+      topic_name VARCHAR(200), \
+      change_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL, \
+      change_comment VARCHAR(200), \
+      wiki_user_id INTEGER, \
+      display_name VARCHAR(200) NOT NULL, \
+      edit_type INTEGER, \
+      log_type INTEGER, \
+      log_params VARCHAR(500), \
+      virtual_wiki_id INTEGER NOT NULL, \
+      virtual_wiki_name VARCHAR(100) NOT NULL, \
+      characters_changed INTEGER, \
+      CONSTRAINT jam_f_rc_topic_ver FOREIGN KEY (topic_version_id) REFERENCES jam_topic_version(topic_version_id), \
+      CONSTRAINT jam_f_rc_p_topic_v FOREIGN KEY (previous_topic_version_id) REFERENCES jam_topic_version(topic_version_id), \
+      CONSTRAINT jam_f_rc_topic FOREIGN KEY (topic_id) REFERENCES jam_topic(topic_id), \
+      CONSTRAINT jam_f_rc_wuser FOREIGN KEY (wiki_user_id) REFERENCES jam_wiki_user(wiki_user_id), \
+      CONSTRAINT jam_f_rc_vwiki FOREIGN KEY (virtual_wiki_id) REFERENCES jam_virtual_wiki(virtual_wiki_id) \
+    )
+STATEMENT_CREATE_ROLE_TABLE = \
+    CREATE TABLE jam_role ( \
+      role_name VARCHAR(30) NOT NULL, \
+      role_description VARCHAR(200), \
+      CONSTRAINT jam_p_role PRIMARY KEY (role_name) \
+    )
+STATEMENT_CREATE_TOPIC_CURRENT_VERSION_CONSTRAINT = \
+    ALTER TABLE jam_topic add constraint jam_f_topic_topicv \
+    FOREIGN KEY (current_version_id) \
+    REFERENCES jam_topic_version(topic_version_id) 
+STATEMENT_CREATE_TOPIC_TABLE = \
+    CREATE TABLE jam_topic ( \
+      topic_id INTEGER NOT NULL, \
+      virtual_wiki_id INTEGER NOT NULL, \
+      namespace_id INTEGER DEFAULT 0 NOT NULL, \
+      topic_name VARCHAR(200) NOT NULL, \
+      page_name VARCHAR(200) NOT NULL, \
+      page_name_lower VARCHAR(200) NOT NULL, \
+      delete_date TIMESTAMP, \
+      topic_read_only INTEGER DEFAULT 0 NOT NULL, \
+      topic_admin_only INTEGER DEFAULT 0 NOT NULL, \
+      current_version_id INTEGER, \
+      topic_type INTEGER NOT NULL, \
+      redirect_to VARCHAR(200), \
+      CONSTRAINT jam_p_topic PRIMARY KEY (topic_id), \
+      CONSTRAINT jam_f_topic_vwiki FOREIGN KEY (virtual_wiki_id) REFERENCES jam_virtual_wiki(virtual_wiki_id), \
+      CONSTRAINT jam_f_topic_namesp FOREIGN KEY (namespace_id) REFERENCES jam_namespace(namespace_id), \
+      CONSTRAINT jam_u_topic_name UNIQUE (topic_name, virtual_wiki_id, delete_date) \
+    )
+STATEMENT_CREATE_TOPIC_LINKS_TABLE = \
+    CREATE TABLE jam_topic_links ( \
+      topic_id INTEGER NOT NULL, \
+      link_topic_name VARCHAR(200) NOT NULL, \
+      CONSTRAINT jam_p_topic_links PRIMARY KEY (topic_id, link_topic_name), \
+      CONSTRAINT jam_f_tlink_topic_id FOREIGN KEY (topic_id) REFERENCES jam_topic(topic_id) \
+    )
+STATEMENT_CREATE_TOPIC_LINKS_INDEX = \
+    CREATE INDEX jam_i_topic_links_tnm on jam_topic_links (link_topic_name) 
+STATEMENT_CREATE_TOPIC_PAGE_NAME_INDEX = \
+    CREATE INDEX jam_i_topic_pgnm on jam_topic (page_name) 
+STATEMENT_CREATE_TOPIC_PAGE_NAME_LOWER_INDEX = \
+    CREATE INDEX jam_i_topic_pgnml on jam_topic (page_name_lower) 
+STATEMENT_CREATE_TOPIC_VIRTUAL_WIKI_INDEX = \
+    CREATE INDEX jam_i_topic_vwiki on jam_topic (virtual_wiki_id)
+STATEMENT_CREATE_TOPIC_NAMESPACE_INDEX = \
+    CREATE INDEX jam_i_topic_nmsp on jam_topic (namespace_id) 
+STATEMENT_CREATE_TOPIC_CURRENT_VERSION_INDEX = \
+    CREATE INDEX jam_i_topic_cver on jam_topic (current_version_id) 
+STATEMENT_CREATE_TOPIC_VERSION_TABLE = \
+    CREATE TABLE jam_topic_version ( \
+      topic_version_id INTEGER NOT NULL, \
+      topic_id INTEGER NOT NULL, \
+      edit_comment VARCHAR(200), \
+      version_content TEXT, \
+      wiki_user_id INTEGER, \
+      wiki_user_display VARCHAR(100) NOT NULL, \
+      edit_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL, \
+      edit_type INTEGER NOT NULL, \
+      previous_topic_version_id INTEGER, \
+      characters_changed INTEGER, \
+      version_params VARCHAR(500), \
+      CONSTRAINT jam_p_topic_ver PRIMARY KEY (topic_version_id), \
+      CONSTRAINT jam_f_topicv_topic FOREIGN KEY (topic_id) REFERENCES jam_topic(topic_id), \
+      CONSTRAINT jam_f_topicv_wuser FOREIGN KEY (wiki_user_id) REFERENCES jam_wiki_user(wiki_user_id), \
+      CONSTRAINT jam_f_topicv_pver FOREIGN KEY (previous_topic_version_id) REFERENCES jam_topic_version(topic_version_id) \
+    )
+STATEMENT_CREATE_TOPIC_VERSION_TOPIC_INDEX = \
+    CREATE INDEX jam_i_topicv_topic on jam_topic_version (topic_id) 
+STATEMENT_CREATE_TOPIC_VERSION_PREVIOUS_INDEX = \
+    CREATE INDEX jam_i_topicv_prv on jam_topic_version (previous_topic_version_id) 
+STATEMENT_CREATE_TOPIC_VERSION_USER_DISPLAY_INDEX = \
+    CREATE INDEX jam_i_topicv_udisp on jam_topic_version (wiki_user_display) 
+STATEMENT_CREATE_TOPIC_VERSION_USER_ID_INDEX = \
+    CREATE INDEX jam_i_topicv_uid on jam_topic_version (wiki_user_id) 
+STATEMENT_CREATE_USERS_TABLE = \
+    CREATE TABLE jam_users ( \
+      username varchar(100) NOT NULL, \
+      password varchar(100) NOT NULL, \
+      enabled INTEGER DEFAULT 1 NOT NULL, \
+      CONSTRAINT jam_p_users PRIMARY KEY (username) \
+    )
+STATEMENT_CREATE_VIRTUAL_WIKI_TABLE = \
+    CREATE TABLE jam_virtual_wiki ( \
+      virtual_wiki_id INTEGER NOT NULL, \
+      virtual_wiki_name VARCHAR(100) NOT NULL, \
+      default_topic_name VARCHAR(200), \
+      create_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL, \
+      logo_image_url VARCHAR(200), \
+      site_name VARCHAR(200), \
+      meta_description VARCHAR(500), \
+      CONSTRAINT jam_p_vwiki PRIMARY KEY (virtual_wiki_id), \
+      CONSTRAINT jam_u_vwiki_name UNIQUE (virtual_wiki_name) \
+    )
+STATEMENT_CREATE_WATCHLIST_TABLE = \
+    CREATE TABLE jam_watchlist ( \
+      wiki_user_id INTEGER NOT NULL, \
+      topic_name VARCHAR(200), \
+      virtual_wiki_id INTEGER NOT NULL, \
+      CONSTRAINT jam_p_watchlist PRIMARY KEY (wiki_user_id, topic_name, virtual_wiki_id), \
+      CONSTRAINT jam_f_wlist_userid FOREIGN KEY (wiki_user_id) REFERENCES jam_wiki_user(wiki_user_id), \
+      CONSTRAINT jam_f_wlist_vwiki FOREIGN KEY (virtual_wiki_id) REFERENCES jam_virtual_wiki(virtual_wiki_id) \
+    )
+STATEMENT_CREATE_WIKI_FILE_TABLE = \
+    CREATE TABLE jam_file ( \
+      file_id INTEGER NOT NULL, \
+      virtual_wiki_id INTEGER NOT NULL, \
+      file_name VARCHAR(200) NOT NULL, \
+      delete_date TIMESTAMP, \
+      file_read_only INTEGER DEFAULT 0 NOT NULL, \
+      file_admin_only INTEGER DEFAULT 0 NOT NULL, \
+      file_url VARCHAR(200) NOT NULL, \
+      mime_type VARCHAR(100) NOT NULL, \
+      topic_id INTEGER NOT NULL, \
+      file_size INTEGER NOT NULL, \
+      CONSTRAINT jam_p_file PRIMARY KEY (file_id), \
+      CONSTRAINT jam_f_file_vwiki FOREIGN KEY (virtual_wiki_id) REFERENCES jam_virtual_wiki(virtual_wiki_id), \
+      CONSTRAINT jam_f_file_topic FOREIGN KEY (topic_id) REFERENCES jam_topic(topic_id), \
+      CONSTRAINT jam_u_file_url UNIQUE (file_url), \
+      CONSTRAINT jam_u_file_topic UNIQUE (virtual_wiki_id, topic_id) \
+    )
+STATEMENT_CREATE_WIKI_FILE_VERSION_TABLE = \
+    CREATE TABLE jam_file_version ( \
+      file_version_id INTEGER NOT NULL, \
+      file_id INTEGER NOT NULL, \
+      upload_comment VARCHAR(200), \
+      file_url VARCHAR(200) NOT NULL, \
+      wiki_user_id INTEGER, \
+      wiki_user_display VARCHAR(100) NOT NULL, \
+      upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL, \
+      mime_type VARCHAR(100) NOT NULL, \
+      file_size INTEGER NOT NULL, \
+      CONSTRAINT jam_p_file_ver PRIMARY KEY (file_version_id), \
+      CONSTRAINT jam_f_filev_file FOREIGN KEY (file_id) REFERENCES jam_file(file_id), \
+      CONSTRAINT jam_f_filev_wuser FOREIGN KEY (wiki_user_id) REFERENCES jam_wiki_user(wiki_user_id), \
+      CONSTRAINT jam_u_filev_url UNIQUE (file_url) \
+    )
+STATEMENT_CREATE_WIKI_USER_LOGIN_INDEX = \
+    CREATE UNIQUE INDEX jam_u_wuser_login on jam_wiki_user (lower(login)) 
+STATEMENT_CREATE_WIKI_USER_TABLE = \
+    CREATE TABLE jam_wiki_user ( \
+      wiki_user_id INTEGER NOT NULL, \
+      login VARCHAR(100) NOT NULL, \
+      display_name VARCHAR(100), \
+      create_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL, \
+      last_login_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL, \
+      create_ip_address VARCHAR(39) NOT NULL, \
+      last_login_ip_address VARCHAR(39) NOT NULL, \
+      default_locale VARCHAR(8), \
+      email VARCHAR(100), \
+      editor VARCHAR(50), \
+      signature VARCHAR(255), \
+      CONSTRAINT jam_p_wuser PRIMARY KEY (wiki_user_id), \
+      CONSTRAINT jam_f_wuser_users FOREIGN KEY (login) REFERENCES jam_users(username) \
+    )
+STATEMENT_DELETE_AUTHORITIES = \
+    delete from jam_authorities \
+    where username = ?
+STATEMENT_DELETE_CONFIGURATION = \
+    delete from jam_configuration
+STATEMENT_DELETE_GROUP_AUTHORITIES = \
+    delete from jam_group_authorities \
+    where group_id = ?
+STATEMENT_DELETE_INTERWIKI = \
+    delete from jam_interwiki \
+    where interwiki_prefix = ?
+STATEMENT_DELETE_LOG_ITEMS = \
+    DELETE from jam_log \
+    where virtual_wiki_id = ?
+STATEMENT_DELETE_NAMESPACE_TRANSLATIONS = \
+    delete from jam_namespace_translation \
+    where virtual_wiki_id = ?
+STATEMENT_DELETE_RECENT_CHANGES = \
+    DELETE from jam_recent_change
+STATEMENT_DELETE_RECENT_CHANGES_TOPIC = \
+    DELETE from jam_recent_change \
+    where topic_id = ? \
+    and edit_type != 5 
+STATEMENT_DELETE_TOPIC_CATEGORIES = \
+    delete from jam_category \
+    where child_topic_id = ? 
+STATEMENT_DELETE_TOPIC_LINKS = \
+    delete from jam_topic_links \
+    where topic_id = ? 
+STATEMENT_DELETE_WATCHLIST_ENTRY = \
+    delete from jam_watchlist \
+    where virtual_wiki_id = ? \
+    and topic_name = ? \
+    and wiki_user_id = ? 
+STATEMENT_DROP_AUTHORITIES_TABLE = \
+    DROP TABLE jam_authorities
+STATEMENT_DROP_CATEGORY_TABLE = \
+    DROP TABLE jam_category 
+STATEMENT_DROP_CONFIGURATION_TABLE = \
+    DROP TABLE jam_configuration
+STATEMENT_DROP_GROUP_AUTHORITIES_TABLE = \
+    DROP TABLE jam_group_authorities
+STATEMENT_DROP_GROUP_MEMBERS_TABLE = \
+    DROP TABLE jam_group_members
+STATEMENT_DROP_GROUP_TABLE = \
+    DROP TABLE jam_group 
+STATEMENT_DROP_INTERWIKI_TABLE = \
+    DROP TABLE jam_interwiki
+STATEMENT_DROP_LOG_TABLE = \
+    DROP TABLE jam_log
+STATEMENT_DROP_NAMESPACE_TABLE = \
+    DROP TABLE jam_namespace
+STATEMENT_DROP_NAMESPACE_TRANSLATION_TABLE = \
+    DROP TABLE jam_namespace_translation
+STATEMENT_DROP_RECENT_CHANGE_TABLE = \
+    DROP TABLE jam_recent_change
+STATEMENT_DROP_ROLE_TABLE = \
+    DROP TABLE jam_role 
+STATEMENT_DROP_TOPIC_CURRENT_VERSION_CONSTRAINT = \
+    ALTER TABLE jam_topic drop constraint jam_f_topic_topicv 
+STATEMENT_DROP_TOPIC_TABLE = \
+    DROP TABLE jam_topic
+STATEMENT_DROP_TOPIC_LINKS_TABLE = \
+    DROP TABLE jam_topic_links
+STATEMENT_DROP_TOPIC_VERSION_TABLE = \
+    DROP TABLE jam_topic_version
+STATEMENT_DROP_USERS_TABLE = \
+    DROP TABLE jam_users
+STATEMENT_DROP_VIRTUAL_WIKI_TABLE = \
+    DROP TABLE jam_virtual_wiki
+STATEMENT_DROP_WATCHLIST_TABLE = \
+    DROP TABLE jam_watchlist
+STATEMENT_DROP_WIKI_FILE_TABLE = \
+    DROP TABLE jam_file
+STATEMENT_DROP_WIKI_FILE_VERSION_TABLE = \
+    DROP TABLE jam_file_version
+STATEMENT_DROP_WIKI_USER_TABLE = \
+    DROP TABLE jam_wiki_user
+STATEMENT_INSERT_AUTHORITY = \
+    insert into jam_authorities ( \
+      username, authority \
+    ) values ( \
+      ?, ? \
+    )
+STATEMENT_INSERT_CATEGORY = \
+    insert into jam_category ( \
+      child_topic_id, category_name, sort_key \
+    ) values ( \
+      ?, ?, ? \
+    )
+STATEMENT_INSERT_CONFIGURATION = \
+    insert into jam_configuration ( \
+      config_key, config_value \
+    ) values ( \
+      ?, ? \
+    )
+STATEMENT_INSERT_GROUP = \
+    insert into jam_group ( \
+      group_id, group_name, group_description \
+    ) values ( \
+      ?, ?, ? \
+    )
+STATEMENT_INSERT_GROUP_AUTO_INCREMENT = \
+    insert into jam_group ( \
+      group_name, group_description \
+    ) values ( \
+      ?, ? \
+    )
+STATEMENT_INSERT_GROUP_AUTHORITY = \
+    insert into jam_group_authorities ( \
+      group_id, authority \
+    ) values ( \
+      ?, ? \
+    )
+STATEMENT_INSERT_GROUP_MEMBER = \
+    insert into jam_group_members ( \
+      id, username, group_id \
+    ) values ( \
+      ?, ?, ? \
+    )
+STATEMENT_INSERT_GROUP_MEMBER_AUTO_INCREMENT = \
+    insert into jam_group_members ( \
+      username, group_id \
+    ) values ( \
+      ?, ? \
+    )
+STATEMENT_INSERT_INTERWIKI = \
+    insert into jam_interwiki ( \
+      interwiki_prefix, interwiki_pattern, interwiki_display, interwiki_type \
+    ) values ( \
+      ?, ?, ?, ? \
+    )
+STATEMENT_INSERT_LOG_ITEM = \
+    insert into jam_log ( \
+      log_date, virtual_wiki_id, wiki_user_id, \
+      display_name, log_type, log_comment, log_params, \
+      topic_id, topic_version_id \
+    ) values ( \
+      ?, ?, ?, ?, ?, ?, ?, ?, ? \
+    )
+STATEMENT_INSERT_LOG_ITEMS_BY_TOPIC_VERSION_TYPE = \
+    INSERT INTO jam_log ( \
+      log_date, virtual_wiki_id, wiki_user_id, \
+      display_name, log_type, log_comment, log_params, \
+      topic_id, topic_version_id \
+    ) \
+    SELECT \
+      jam_topic_version.edit_date, jam_topic.virtual_wiki_id, \
+      jam_topic_version.wiki_user_id, \
+      coalesce(jam_wiki_user.login, jam_topic_version.wiki_user_display), \
+      ?, jam_topic_version.edit_comment, jam_topic.topic_name || ?, \
+      jam_topic.topic_id, jam_topic_version.topic_version_id \
+    FROM jam_topic, jam_topic_version \
+    LEFT OUTER JOIN jam_wiki_user ON ( \
+      jam_wiki_user.wiki_user_id = jam_topic_version.wiki_user_id \
+    ) \
+    WHERE jam_topic.topic_id = jam_topic_version.topic_id \
+    AND jam_topic.virtual_wiki_id = ? \
+    AND jam_topic_version.edit_type = ?
+STATEMENT_INSERT_LOG_ITEMS_IMPORT = \
+    INSERT INTO jam_log ( \
+      log_date, virtual_wiki_id, wiki_user_id, \
+      display_name, log_type, log_comment, log_params, \
+      topic_id, topic_version_id \
+    ) \
+    SELECT \
+      jam_topic_version.edit_date, jam_topic.virtual_wiki_id, \
+      jam_topic_version.wiki_user_id, \
+      coalesce(jam_wiki_user.login, jam_topic_version.wiki_user_display), \
+      ?, jam_topic_version.edit_comment, jam_topic.topic_name, \
+      jam_topic.topic_id, jam_topic_version.topic_version_id \
+    FROM jam_topic, jam_topic_version \
+    LEFT OUTER JOIN jam_wiki_user ON ( \
+      jam_wiki_user.wiki_user_id = jam_topic_version.wiki_user_id \
+    ) \
+    WHERE jam_topic.topic_id = jam_topic_version.topic_id \
+    AND jam_topic_version.edit_type = ? \
+    AND jam_topic.virtual_wiki_id = ? \
+    AND jam_topic_version.topic_version_id in ( \
+      select max(topic_version_id) from jam_topic_version \
+      where edit_type = ? \
+      group by topic_id \
+    )
+STATEMENT_INSERT_LOG_ITEMS_MOVE = \
+    INSERT INTO jam_log ( \
+      log_date, virtual_wiki_id, wiki_user_id, \
+      display_name, log_type, log_comment, log_params, \
+      topic_id, topic_version_id \
+    ) \
+    SELECT \
+      jam_topic_version.edit_date, jam_topic.virtual_wiki_id, \
+      jam_topic_version.wiki_user_id, \
+      coalesce(jam_wiki_user.login, jam_topic_version.wiki_user_display), \
+      ?, jam_topic_version.edit_comment, jam_topic.topic_name || '|' || jam_topic.redirect_to, \
+      jam_topic.topic_id, jam_topic_version.topic_version_id \
+    FROM jam_topic, jam_topic_version \
+    LEFT OUTER JOIN jam_wiki_user ON ( \
+      jam_wiki_user.wiki_user_id = jam_topic_version.wiki_user_id \
+    ) \
+    WHERE jam_topic.topic_id = jam_topic_version.topic_id \
+    AND jam_topic.virtual_wiki_id = ? \
+    AND jam_topic.redirect_to is not null \
+    AND jam_topic_version.edit_type = ?
+STATEMENT_INSERT_LOG_ITEMS_UPLOAD = \
+    INSERT INTO jam_log ( \
+      log_date, virtual_wiki_id, wiki_user_id, \
+      display_name, log_type, log_comment, log_params, \
+      topic_id, topic_version_id \
+    ) \
+    SELECT \
+      jam_topic_version.edit_date, jam_topic.virtual_wiki_id, \
+      jam_topic_version.wiki_user_id, \
+      coalesce(jam_wiki_user.login, jam_topic_version.wiki_user_display), \
+      ?, jam_topic_version.edit_comment, jam_topic.topic_name, \
+      jam_topic.topic_id, jam_topic_version.topic_version_id \
+    FROM jam_topic, jam_topic_version \
+    LEFT OUTER JOIN jam_wiki_user ON ( \
+      jam_wiki_user.wiki_user_id = jam_topic_version.wiki_user_id \
+    ) \
+    WHERE jam_topic.topic_id = jam_topic_version.topic_id \
+    AND jam_topic.virtual_wiki_id = ? \
+    AND jam_topic_version.edit_type = ? \
+    AND jam_topic.topic_type in (4, 6)
+STATEMENT_INSERT_LOG_ITEMS_USER = \
+    INSERT INTO jam_log ( \
+      log_date, virtual_wiki_id, wiki_user_id, \
+      display_name, log_type, log_comment, log_params, \
+      topic_id, topic_version_id \
+    ) \
+    SELECT \
+      create_date, ?, wiki_user_id, \
+      login, ?, null, null, null, null \
+    FROM jam_wiki_user
+STATEMENT_INSERT_NAMESPACE = \
+    insert into jam_namespace ( \
+      namespace, main_namespace_id, namespace_id \
+    ) values ( \
+      ?, ?, ? \
+    )
+STATEMENT_INSERT_NAMESPACE_TRANSLATION = \
+    insert into jam_namespace_translation ( \
+      namespace_id, virtual_wiki_id, namespace \
+    ) values ( \
+      ?, ?, ? \
+    )
+STATEMENT_INSERT_RECENT_CHANGE = \
+    insert into jam_recent_change ( \
+      topic_version_id, previous_topic_version_id, topic_id, \
+      topic_name, change_date, change_comment, wiki_user_id, \
+      display_name, edit_type, virtual_wiki_id, virtual_wiki_name, \
+      characters_changed, log_type, log_params \
+    ) values ( \
+      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? \
+    )
+STATEMENT_INSERT_RECENT_CHANGES_VERSIONS = \
+    INSERT INTO jam_recent_change ( \
+      topic_version_id, topic_id, \
+      topic_name, change_date, wiki_user_id, display_name, \
+      edit_type, virtual_wiki_id, virtual_wiki_name, change_comment, \
+      previous_topic_version_id, characters_changed, log_type, log_params \
+    ) \
+    SELECT \
+      jam_topic_version.topic_version_id, jam_topic.topic_id, \
+      jam_topic.topic_name, jam_topic_version.edit_date, \
+      jam_topic_version.wiki_user_id, \
+      coalesce(jam_wiki_user.login, jam_topic_version.wiki_user_display), \
+      jam_topic_version.edit_type, jam_virtual_wiki.virtual_wiki_id, \
+      jam_virtual_wiki.virtual_wiki_name, jam_topic_version.edit_comment, \
+      jam_topic_version.previous_topic_version_id, \
+      jam_topic_version.characters_changed, null, jam_topic_version.version_params \
+    FROM jam_topic, jam_virtual_wiki, jam_topic_version \
+    LEFT OUTER JOIN jam_wiki_user ON ( \
+      jam_wiki_user.wiki_user_id = jam_topic_version.wiki_user_id \
+    ) \
+    WHERE jam_topic.topic_id = jam_topic_version.topic_id \
+    AND jam_topic.virtual_wiki_id = jam_virtual_wiki.virtual_wiki_id \
+    AND jam_topic.delete_date is null \
+    AND ( \
+      jam_topic_version.edit_type in (1, 2, 3) \
+      OR (jam_topic_version.edit_type = 8 AND jam_topic.current_version_id != jam_topic_version.topic_version_id) \
+    )
+STATEMENT_INSERT_RECENT_CHANGES_LOGS = \
+    INSERT INTO jam_recent_change ( \
+      topic_version_id, topic_id, \
+      topic_name, change_date, wiki_user_id, display_name, \
+      edit_type, virtual_wiki_id, virtual_wiki_name, change_comment, \
+      previous_topic_version_id, characters_changed, log_type, log_params \
+    ) \
+    SELECT \
+      jam_log.topic_version_id, jam_log.topic_id, null, jam_log.log_date, \
+      jam_log.wiki_user_id, coalesce(jam_wiki_user.login, jam_log.display_name), \
+      null, jam_virtual_wiki.virtual_wiki_id, \
+      jam_virtual_wiki.virtual_wiki_name, jam_log.log_comment, \
+      null, null, jam_log.log_type, jam_log.log_params \
+    FROM jam_virtual_wiki, jam_log \
+    LEFT OUTER JOIN jam_wiki_user ON ( \
+      jam_wiki_user.wiki_user_id = jam_log.wiki_user_id \
+    ) \
+    WHERE jam_log.virtual_wiki_id = jam_virtual_wiki.virtual_wiki_id
+STATEMENT_INSERT_ROLE = \
+    insert into jam_role ( \
+      role_name, role_description \
+    ) values ( \
+      ?, ? \
+    )
+STATEMENT_INSERT_TOPIC = \
+    insert into jam_topic ( \
+      topic_id, virtual_wiki_id, topic_name, topic_type, \
+      topic_read_only, current_version_id, delete_date, \
+      topic_admin_only, redirect_to, namespace_id, \
+      page_name, page_name_lower \
+    ) values ( \
+      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? \
+    )
+STATEMENT_INSERT_TOPIC_AUTO_INCREMENT = \
+    insert into jam_topic ( \
+      virtual_wiki_id, topic_name, topic_type, \
+      topic_read_only, current_version_id, delete_date, \
+      topic_admin_only, redirect_to, namespace_id, \
+      page_name, page_name_lower \
+    ) values ( \
+      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? \
+    )
+STATEMENT_INSERT_TOPIC_LINKS = \
+    insert into jam_topic_links ( \
+      topic_id, link_topic_name \
+    ) values ( \
+      ?, ? \
+    )
+STATEMENT_INSERT_TOPIC_VERSION = \
+    insert into jam_topic_version ( \
+      topic_version_id, topic_id, edit_comment, version_content, \
+      wiki_user_id, edit_type, wiki_user_display, edit_date, \
+      previous_topic_version_id, characters_changed, version_params \
+    ) values ( \
+      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? \
+    )
+STATEMENT_INSERT_TOPIC_VERSION_AUTO_INCREMENT = \
+    insert into jam_topic_version ( \
+      topic_id, edit_comment, version_content, \
+      wiki_user_id, edit_type, wiki_user_display, edit_date, \
+      previous_topic_version_id, characters_changed, version_params \
+    ) values ( \
+      ?, ?, ?, ?, ?, ?, ?, ?, ?, ? \
+    )
+STATEMENT_INSERT_USER = \
+    insert into jam_users ( \
+      username, password \
+    ) values ( \
+      ?, ? \
+    )
+STATEMENT_INSERT_VIRTUAL_WIKI = \
+    insert into jam_virtual_wiki ( \
+      virtual_wiki_id, virtual_wiki_name, default_topic_name, \
+      logo_image_url, meta_description, site_name \
+    ) values ( \
+      ?, ?, ?, ?, ?, ? \
+    )
+STATEMENT_INSERT_VIRTUAL_WIKI_AUTO_INCREMENT = \
+    insert into jam_virtual_wiki ( \
+      virtual_wiki_name, default_topic_name, \
+      logo_image_url, meta_description, site_name \
+    ) values ( \
+      ?, ?, ?, ?, ? \
+    )
+STATEMENT_INSERT_WATCHLIST_ENTRY = \
+    insert into jam_watchlist ( \
+      virtual_wiki_id, topic_name, wiki_user_id \
+    ) values ( \
+      ?, ?, ? \
+    )
+STATEMENT_INSERT_WIKI_FILE = \
+    insert into jam_file ( \
+      file_id, virtual_wiki_id, file_name, \
+      file_url, mime_type, topic_id, \
+      delete_date, file_read_only, file_admin_only, \
+      file_size \
+    ) values ( \
+      ?, ?, ?, ?, ?, ?, ?, ?, ?, ? \
+    )
+STATEMENT_INSERT_WIKI_FILE_AUTO_INCREMENT = \
+    insert into jam_file ( \
+      virtual_wiki_id, file_name, \
+      file_url, mime_type, topic_id, \
+      delete_date, file_read_only, file_admin_only, \
+      file_size \
+    ) values ( \
+      ?, ?, ?, ?, ?, ?, ?, ?, ? \
+    )
+STATEMENT_INSERT_WIKI_FILE_VERSION = \
+    insert into jam_file_version ( \
+      file_version_id, file_id, upload_comment, \
+      file_url, wiki_user_id, wiki_user_display, \
+      upload_date, mime_type, file_size \
+    ) values ( \
+      ?, ?, ?, ?, ?, ?, ?, ?, ? \
+    )
+STATEMENT_INSERT_WIKI_FILE_VERSION_AUTO_INCREMENT = \
+    insert into jam_file_version ( \
+      file_id, upload_comment, \
+      file_url, wiki_user_id, wiki_user_display, \
+      upload_date, mime_type, file_size \
+    ) values ( \
+      ?, ?, ?, ?, ?, ?, ?, ? \
+    )
+STATEMENT_INSERT_WIKI_USER = \
+    insert into jam_wiki_user ( \
+      wiki_user_id, login, display_name, create_date, \
+      last_login_date, create_ip_address, last_login_ip_address, \
+      default_locale, email, editor, signature \
+    ) values ( \
+      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? \
+    )
+STATEMENT_INSERT_WIKI_USER_AUTO_INCREMENT = \
+    insert into jam_wiki_user ( \
+      login, display_name, create_date, \
+      last_login_date, create_ip_address, last_login_ip_address, \
+      default_locale, email, editor, signature \
+    ) values ( \
+      ?, ?, ?, ?, ?, ?, ?, ?, ?, ? \
+    )
+STATEMENT_SELECT_AUTHORITIES_AUTHORITY = \
+    ( \
+      select jam_group_authorities.group_id as group_id, \
+      null as wiki_user_id, \
+      jam_group_authorities.authority as authority, \
+      jam_group.group_name as group_name, \
+      null as username \
+      from jam_group_authorities, jam_group \
+      where jam_group_authorities.group_id = jam_group.group_id \
+      and jam_group.group_id in ( \
+        select group_id from jam_group_authorities where authority = ? \
+      ) \
+    ) union ( \
+      select null as group_id, \
+      jam_wiki_user.wiki_user_id as wiki_user_id, \
+      jam_authorities.authority as authority, \
+      null as group_name, \
+      jam_authorities.username as username \
+      from jam_authorities, jam_users, jam_wiki_user \
+      where jam_authorities.username = jam_users.username \
+      and jam_wiki_user.login = jam_users.username \
+      and jam_users.username in ( \
+        select username from jam_authorities where authority = ? \
+      ) \
+    ) \
+    order by group_name, username
+STATEMENT_SELECT_AUTHORITIES_LOGIN = \
+    select jam_wiki_user.wiki_user_id, jam_users.username, \
+    jam_authorities.authority \
+    from jam_wiki_user, jam_users \
+    left outer join jam_authorities on ( \
+      jam_users.username = jam_authorities.username \
+    ) \
+    where jam_users.username = jam_wiki_user.login \
+    and lower(jam_users.username) like ? \
+    order by jam_users.username 
+STATEMENT_SELECT_AUTHORITIES_USER = \
+    select role_name, role_description \
+    from jam_role \
+    where role_name in ( \
+      select authority from jam_authorities \
+      where username = ? \
+    )
+STATEMENT_SELECT_CATEGORIES = \
+    select distinct jam_category.category_name, jam_category.sort_key \
+    from jam_topic, jam_category \
+    where jam_topic.topic_id = jam_category.child_topic_id \
+    and jam_topic.virtual_wiki_id = ? \
+    order by jam_category.sort_key \
+    limit ? offset ?
+STATEMENT_SELECT_CATEGORY_TOPICS = \
+    select jam_topic.topic_name, coalesce(jam_category.sort_key, jam_topic.topic_name) as sort_key, \
+    jam_topic.topic_type, jam_category.category_name \
+    from jam_topic, jam_category \
+    where jam_topic.topic_id = jam_category.child_topic_id \
+    and jam_topic.virtual_wiki_id = ? \
+    and lower(jam_category.category_name) = ? \
+    and delete_date is null \
+    order by sort_key  
+STATEMENT_SELECT_CONFIGURATION = \
+    select * from jam_configuration
+STATEMENT_SELECT_GROUP = \
+    select group_id, group_name, group_description \
+    from jam_group \
+    where group_name = ?
+STATEMENT_SELECT_GROUP_AUTHORITIES = \
+    select role_name, role_description \
+    from jam_role \
+    where role_name in ( \
+      select authority \
+      from jam_group_authorities, jam_group \
+      where jam_group_authorities.group_id = jam_group.group_id \
+      and jam_group.group_name = ? \
+    )
+STATEMENT_SELECT_GROUPS_AUTHORITIES = \
+    select jam_group.group_id, jam_group.group_name, \
+    jam_group_authorities.authority \
+    from jam_group \
+    left outer join jam_group_authorities on ( \
+      jam_group.group_id = jam_group_authorities.group_id \
+    ) \
+    order by jam_group.group_name 
+STATEMENT_SELECT_GROUP_SEQUENCE = \
+    select max(group_id) as group_id from jam_group
+STATEMENT_SELECT_GROUP_MEMBERS_SEQUENCE = \
+    select max(id) as id from jam_group_members
+STATEMENT_SELECT_INTERWIKIS = \
+    select * from jam_interwiki
+STATEMENT_SELECT_LOG_ITEMS = \
+    select * from jam_log \
+    where virtual_wiki_id = ? \
+    order by log_date desc \
+    limit ? offset ?
+STATEMENT_SELECT_LOG_ITEMS_BY_TYPE = \
+    select * from jam_log \
+    where log_type = ? \
+    and virtual_wiki_id = ? \
+    order by log_date desc \
+    limit ? offset ?
+STATEMENT_SELECT_NAMESPACE_SEQUENCE = \
+    select max(namespace_id) as namespace_id from jam_namespace
+STATEMENT_SELECT_NAMESPACES = \
+    select jam_namespace.namespace_id, jam_namespace.namespace, \
+    main_namespace_id, virtual_wiki_name, \
+    jam_namespace_translation.namespace as namespace_translation \
+    from jam_namespace \
+    left outer join ( \
+      select namespace_id, namespace, virtual_wiki_name \
+      from jam_namespace_translation, jam_virtual_wiki \
+      where jam_namespace_translation.virtual_wiki_id = jam_virtual_wiki.virtual_wiki_id \
+    ) jam_namespace_translation on ( \
+      jam_namespace.namespace_id = jam_namespace_translation.namespace_id \
+    ) 
+STATEMENT_SELECT_RECENT_CHANGES = \
+    select * from jam_recent_change \
+    where virtual_wiki_name = ? \
+    order by change_date desc \
+    limit ? offset ?
+STATEMENT_SELECT_ROLES = \
+    select * from jam_role \
+    order by role_name 
+STATEMENT_SELECT_TOPIC_BY_ID = \
+    select jam_topic.*, jam_topic_version.version_content \
+    from jam_topic, jam_topic_version \
+    where jam_topic.current_version_id = jam_topic_version.topic_version_id \
+    and jam_topic.virtual_wiki_id = ? \
+    and jam_topic.topic_id = ?
+STATEMENT_SELECT_TOPIC_BY_TYPE = \
+    select topic_name, topic_id from jam_topic \
+    where jam_topic.virtual_wiki_id = ? \
+    and jam_topic.topic_type in (?, ?) \
+    and jam_topic.namespace_id >= ? \
+    and jam_topic.namespace_id <= ? \
+    and jam_topic.delete_date is null \
+    order by jam_topic.topic_name \
+    limit ? offset ?
+STATEMENT_SELECT_TOPIC_COUNT = \
+    select count(topic_id) as topic_count from jam_topic \
+    where virtual_wiki_id = ? \
+    and namespace_id >= ? \
+    and namespace_id <= ? \
+    and topic_type != ? \
+    and delete_date is null 
+STATEMENT_SELECT_TOPIC = \
+    select jam_topic.*, jam_topic_version.version_content \
+    from jam_topic, jam_topic_version \
+    where jam_topic.current_version_id = jam_topic_version.topic_version_id \
+    and jam_topic.page_name = ? \
+    and jam_topic.virtual_wiki_id = ? \
+    and jam_topic.namespace_id = ? \
+    order by jam_topic.delete_date 
+STATEMENT_SELECT_TOPIC_HISTORY = \
+    SELECT \
+      jam_topic_version.topic_version_id, jam_topic.topic_id, \
+      jam_topic.topic_name, jam_topic_version.edit_date as change_date, \
+      jam_topic_version.wiki_user_id, \
+      coalesce(jam_wiki_user.login, jam_topic_version.wiki_user_display) as display_name, \
+      jam_topic_version.edit_type, jam_virtual_wiki.virtual_wiki_id, \
+      jam_virtual_wiki.virtual_wiki_name, jam_topic_version.edit_comment as change_comment, \
+      jam_topic_version.previous_topic_version_id, \
+      jam_topic_version.characters_changed, null as log_type, \
+      jam_topic_version.version_params as log_params \
+    FROM jam_topic, jam_virtual_wiki, jam_topic_version \
+    LEFT OUTER JOIN jam_wiki_user ON ( \
+      jam_wiki_user.wiki_user_id = jam_topic_version.wiki_user_id \
+    ) \
+    WHERE jam_topic.topic_id = ? \
+    AND jam_topic.topic_id = jam_topic_version.topic_id \
+    AND jam_topic.virtual_wiki_id = jam_virtual_wiki.virtual_wiki_id \
+    AND jam_topic.delete_date is null \
+    order by change_date desc \
+    limit ? offset ?
+STATEMENT_SELECT_TOPIC_NAME = \
+    select topic_name from jam_topic \
+    where page_name = ? \
+    and virtual_wiki_id = ? \
+    and namespace_id = ? \
+    and delete_date is null
+STATEMENT_SELECT_TOPIC_NAME_LOWER = \
+    select topic_name from jam_topic \
+    where page_name_lower = ? \
+    and virtual_wiki_id = ? \
+    and namespace_id = ? \
+    and delete_date is null
+STATEMENT_SELECT_TOPIC_LINKS = \
+    select jam_topic.topic_name \
+    from jam_topic, jam_topic_links \
+    where jam_topic.topic_id = jam_topic_links.topic_id \
+    and jam_topic.virtual_wiki_id = ? \
+    and jam_topic_links.link_topic_name = ? \
+    order by jam_topic.topic_name
+STATEMENT_SELECT_TOPIC_LINK_ORPHANS = \
+    select jam_topic.topic_name \
+    from jam_topic \
+    left outer join jam_topic_links on ( \
+      jam_topic.topic_name = jam_topic_links.link_topic_name \
+    ) \
+    left outer join jam_category on ( \
+      jam_topic.topic_id = jam_category.child_topic_id \
+    ) \
+    where jam_topic.virtual_wiki_id = ? \
+    and jam_topic.namespace_id = ? \
+    and jam_topic.topic_type != ? \
+    and jam_topic.delete_date is null \
+    and jam_topic_links.link_topic_name is null \
+    and jam_category.child_topic_id is null
+STATEMENT_SELECT_TOPIC_LOWER = \
+    select jam_topic.*, jam_topic_version.version_content \
+    from jam_topic, jam_topic_version \
+    where jam_topic.current_version_id = jam_topic_version.topic_version_id \
+    and jam_topic.page_name_lower = ? \
+    and jam_topic.virtual_wiki_id = ? \
+    and jam_topic.namespace_id = ? \
+    order by jam_topic.delete_date 
+STATEMENT_SELECT_TOPIC_NAMES = \
+    select topic_name, topic_id, delete_date from jam_topic \
+    where virtual_wiki_id = ?
+STATEMENT_SELECT_TOPIC_SEQUENCE = \
+    select max(topic_id) as topic_id from jam_topic
+STATEMENT_SELECT_TOPIC_VERSION = \
+    select * from jam_topic_version \
+    where topic_version_id = ?
+STATEMENT_SELECT_TOPIC_VERSION_NEXT_ID = \
+    select topic_version_id from jam_topic_version \
+    where previous_topic_version_id = ?
+STATEMENT_SELECT_TOPIC_VERSION_SEQUENCE = \
+    select max(topic_version_id) as topic_version_id from jam_topic_version
+STATEMENT_SELECT_TOPICS_ADMIN = \
+    select topic_name from jam_topic \
+    where virtual_wiki_id = ? \
+    and topic_admin_only = 1 \
+    and delete_date is null \
+    order by topic_name \
+    limit ? offset ?
+STATEMENT_SELECT_USERS_AUTHENTICATION = \
+    select username from jam_users \
+    where username = ? \
+    and password = ?
+STATEMENT_SELECT_VIRTUAL_WIKI_SEQUENCE = \
+    select max(virtual_wiki_id) as virtual_wiki_id from jam_virtual_wiki
+STATEMENT_SELECT_VIRTUAL_WIKIS = \
+    select * from jam_virtual_wiki \
+    order by virtual_wiki_name
+STATEMENT_SELECT_WATCHLIST = \
+    select topic_name from jam_watchlist \
+    where virtual_wiki_id = ? \
+    and wiki_user_id = ? 
+STATEMENT_SELECT_WATCHLIST_CHANGES = \
+    select \
+      jam_topic_version.topic_version_id, jam_topic_version.topic_id, \
+      jam_topic_version.previous_topic_version_id, jam_topic.topic_name, \
+      jam_topic_version.edit_date as change_date, jam_topic_version.edit_comment as change_comment, \
+      jam_topic_version.wiki_user_id, jam_topic_version.edit_type, \
+      jam_wiki_user.login as display_name, jam_topic.virtual_wiki_id, \
+      jam_virtual_wiki.virtual_wiki_name, \
+      jam_topic_version.characters_changed, \
+      null as log_type, jam_topic_version.version_params as log_params \
+    from jam_topic, jam_virtual_wiki, jam_topic_version, \
+    jam_wiki_user, jam_watchlist \
+    where jam_virtual_wiki.virtual_wiki_id = jam_topic.virtual_wiki_id \
+    and jam_wiki_user.wiki_user_id = jam_topic_version.wiki_user_id \
+    and jam_topic.current_version_id = jam_topic_version.topic_version_id \
+    and jam_topic.topic_name = jam_watchlist.topic_name \
+    and jam_virtual_wiki.virtual_wiki_id = ? \
+    and jam_watchlist.wiki_user_id = ? \
+    and (jam_topic.delete_date is null or jam_topic_version.edit_type = 5) \
+    order by edit_date desc \
+    limit ? offset ?
+STATEMENT_SELECT_WIKI_FILE = \
+    select * from jam_file \
+    where virtual_wiki_id = ? \
+    and topic_id = ?
+STATEMENT_SELECT_WIKI_FILE_COUNT = \
+    select count(file_id) as file_count from jam_file \
+    where virtual_wiki_id = ? \
+    and delete_date is null 
+STATEMENT_SELECT_WIKI_FILE_SEQUENCE = \
+    select max(file_id) as file_id from jam_file
+STATEMENT_SELECT_WIKI_FILE_VERSION_SEQUENCE = \
+    select max(file_version_id) as file_version_id from jam_file_version
+STATEMENT_SELECT_WIKI_FILE_VERSIONS = \
+    select * from jam_file_version \
+    where file_id = ? \
+    order by file_version_id desc
+STATEMENT_SELECT_WIKI_USER = \
+    select * from jam_wiki_user \
+    where wiki_user_id = ?
+STATEMENT_SELECT_WIKI_USER_CHANGES_ANONYMOUS = \
+    select \
+      jam_topic_version.topic_version_id, jam_topic_version.topic_id, \
+      jam_topic_version.previous_topic_version_id, jam_topic.topic_name, \
+      jam_topic_version.edit_date as change_date, jam_topic_version.edit_comment as change_comment, \
+      jam_topic_version.wiki_user_id, jam_topic_version.edit_type, \
+      jam_topic_version.wiki_user_display as display_name, \
+      jam_topic.virtual_wiki_id, jam_virtual_wiki.virtual_wiki_name, \
+      jam_topic_version.characters_changed, \
+      null as log_type, jam_topic_version.version_params as log_params \
+    from jam_topic, jam_virtual_wiki, jam_topic_version \
+    where jam_virtual_wiki.virtual_wiki_id = jam_topic.virtual_wiki_id \
+    and jam_topic.topic_id = jam_topic_version.topic_id \
+    and jam_virtual_wiki.virtual_wiki_name = ? \
+    and jam_topic_version.wiki_user_display = ? \
+    and jam_topic_version.wiki_user_id is null \
+    and (jam_topic.delete_date is null or jam_topic_version.edit_type = 5) \
+    order by edit_date desc \
+    limit ? offset ?
+STATEMENT_SELECT_WIKI_USER_CHANGES_LOGIN = \
+    select \
+      jam_topic_version.topic_version_id, jam_topic_version.topic_id, \
+      jam_topic_version.previous_topic_version_id, jam_topic.topic_name, \
+      jam_topic_version.edit_date as change_date, jam_topic_version.edit_comment as change_comment, \
+      jam_topic_version.wiki_user_id, jam_topic_version.edit_type, \
+      jam_wiki_user.login as display_name, jam_topic.virtual_wiki_id, \
+      jam_virtual_wiki.virtual_wiki_name, \
+      jam_topic_version.characters_changed, \
+      null as log_type, jam_topic_version.version_params as log_params \
+    from jam_topic, jam_virtual_wiki, jam_topic_version, jam_wiki_user \
+    where jam_virtual_wiki.virtual_wiki_id = jam_topic.virtual_wiki_id \
+    and jam_wiki_user.wiki_user_id = jam_topic_version.wiki_user_id \
+    and jam_topic.topic_id = jam_topic_version.topic_id \
+    and jam_virtual_wiki.virtual_wiki_name = ? \
+    and jam_wiki_user.login = ? \
+    and (jam_topic.delete_date is null or jam_topic_version.edit_type = 5) \
+    order by edit_date desc \
+    limit ? offset ?
+STATEMENT_SELECT_WIKI_USER_COUNT = \
+    select count(wiki_user_id) as user_count from jam_wiki_user 
+STATEMENT_SELECT_WIKI_USER_DETAILS_PASSWORD = \
+    select password from jam_users \
+    where username = ?
+STATEMENT_SELECT_WIKI_USER_LOGIN = \
+    select wiki_user_id from jam_wiki_user \
+    where login = ?
+STATEMENT_SELECT_WIKI_USER_SEQUENCE = \
+    select max(wiki_user_id) as wiki_user_id from jam_wiki_user
+STATEMENT_SELECT_WIKI_USERS = \
+    select login from jam_wiki_user \
+    order by login \
+    limit ? offset ?
+STATEMENT_UPDATE_GROUP = \
+    update jam_group \
+    set group_description = ?, \
+    group_name = ? \
+    where group_id = ?
+STATEMENT_UPDATE_NAMESPACE = \
+    update jam_namespace \
+    set namespace = ?, \
+    main_namespace_id = ? \
+    where namespace_id = ?
+STATEMENT_UPDATE_ROLE = \
+    update jam_role \
+    set role_description = ? \
+    where role_name = ?
+STATEMENT_UPDATE_TOPIC = \
+    update jam_topic set \
+    virtual_wiki_id = ?, \
+    topic_name = ?, \
+    topic_type = ?, \
+    topic_read_only = ?, \
+    current_version_id = ?, \
+    delete_date = ?, \
+    topic_admin_only = ?, \
+    redirect_to = ?, \
+    namespace_id = ?, \
+    page_name = ?, \
+    page_name_lower = ? \
+    where topic_id = ?
+STATEMENT_UPDATE_TOPIC_NAMESPACE = \
+    update jam_topic set \
+    namespace_id = ?, \
+    page_name = ?, \
+    page_name_lower = ? \
+    where topic_id = ?
+STATEMENT_UPDATE_TOPIC_VERSION_PREVIOUS_VERSION_ID = \
+    update jam_topic_version set \
+    previous_topic_version_id = ? \
+    where topic_version_id = ?
+STATEMENT_UPDATE_USER = \
+    update jam_users set \
+    password = ?, \
+    enabled = ? \
+    where username = ?
+STATEMENT_UPDATE_VIRTUAL_WIKI = \
+    update jam_virtual_wiki set \
+    default_topic_name = ?, \
+    logo_image_url = ?, \
+    meta_description = ?, \
+    site_name = ? \
+    where virtual_wiki_id = ?
+STATEMENT_UPDATE_WIKI_FILE = \
+    update jam_file set \
+    virtual_wiki_id = ?, \
+    file_name = ?, \
+    file_url = ?, \
+    mime_type = ?, \
+    topic_id = ?, \
+    delete_date = ?, \
+    file_read_only = ?, \
+    file_admin_only = ?, \
+    file_size = ? \
+    where file_id = ?
+STATEMENT_UPDATE_WIKI_USER = \
+    update jam_wiki_user set \
+    login = ?, \
+    display_name = ?, \
+    last_login_date = ?, \
+    last_login_ip_address = ?, \
+    default_locale = ?, \
+    email = ?, \
+    editor = ?, \
+    signature = ? \
+    where wiki_user_id = ?
+UPGRADE_090_ADD_TOPIC_NAMESPACE_ID = \
+    alter table jam_topic add column namespace_id INTEGER DEFAULT 0 NOT NULL
+UPGRADE_090_ADD_TOPIC_PAGE_NAME = \
+    alter table jam_topic add column page_name VARCHAR(200)
+UPGRADE_090_ADD_TOPIC_PAGE_NAME_LOWER = \
+    alter table jam_topic add column page_name_lower VARCHAR(200)
+UPGRADE_090_ADD_TOPIC_PAGE_NAME_LOWER_NOT_NULL_CONSTRAINT = \
+    alter table jam_topic alter column page_name_lower VARCHAR(200) NOT NULL
+UPGRADE_090_ADD_TOPIC_PAGE_NAME_NOT_NULL_CONSTRAINT = \
+    alter table jam_topic alter column page_name VARCHAR(200) NOT NULL
+UPGRADE_090_ADD_TOPIC_NAMESPACE_ID_CONSTRAINT = \
+    alter table jam_topic add constraint jam_f_topic_namesp FOREIGN KEY (namespace_id) REFERENCES jam_namespace(namespace_id) 
+UPGRADE_100_ADD_VIRTUAL_WIKI_LOGO_URL = \
+    alter table jam_virtual_wiki add column logo_image_url VARCHAR(200)
+UPGRADE_100_ADD_VIRTUAL_WIKI_SITE_NAME = \
+    alter table jam_virtual_wiki add column site_name VARCHAR(200)
+UPGRADE_100_ADD_VIRTUAL_WIKI_META_DESCRIPTION = \
+    alter table jam_virtual_wiki add column meta_description VARCHAR(500)
+UPGRADE_100_DROP_VIRTUAL_WIKI_DEFAULT_TOPIC_NOT_NULL = \
+    alter table jam_virtual_wiki alter column default_topic_name VARCHAR(200) NULL

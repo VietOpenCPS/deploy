@@ -17,7 +17,6 @@ services:
         volumes:
           - ./mariadb-data/:/var/lib/mysql/
           - ./mariadb-init-data/:/docker-entrypoint-initdb.d/
-          #- ./app-data/:/server/
           - ./mariadb-mycnf/my.cnf:/etc/my.cnf
         networks:
           - back-tier

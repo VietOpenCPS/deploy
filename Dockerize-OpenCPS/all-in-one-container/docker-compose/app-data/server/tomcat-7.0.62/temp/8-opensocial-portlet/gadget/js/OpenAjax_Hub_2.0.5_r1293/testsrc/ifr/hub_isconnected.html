@@ -1,0 +1,146 @@
+<html>
+<head>
+    <title>Iframe Client</title>
+    
+    <script src="../config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="2";</script>
+    <script src="../util/loadHub.js"></script>
+    
+    <script src="../util/test_hub.js"></script>
+    <script src="../util/testHelper.js"></script>
+    
+    <script type="text/javascript">
+        function init()
+        {
+            new TestHubClient( "iframe", function( testHubClient ) {
+                
+                this.__test = testHubClient;
+
+                this.__stage1 = function() {
+                    try {
+                        this.__hubClient = new OpenAjax.hub.IframeHubClient({
+                                HubClient: {
+                                    onSecurityAlert: function() {},
+                                    log: this.__test.log
+                                }
+                        });
+
+                        // test before we call connect
+                        this.__testDisconnected();
+
+                        this.__hubClient.connect(
+                            function( item, success, error ) {
+                                this.__test.assertTrue( success );
+                                this.__stage2();
+                            },
+                            this
+                        );
+                    } catch( e ) {
+                        this.__test.errback( e );
+                    }
+                }
+                
+                this.__stage2 = function() {
+                    try {
+                        // now we are connected -- pubsub should work
+                        this.__testConnected();
+
+                        this.__hubClient.disconnect(
+                            function( item, success, error ) {
+                                this.__test.assertTrue( success );
+                                this.__stage3();
+                            },
+                            this
+                        );
+                    } catch( e ) {
+                        this.__test.errback( e );
+                    }
+                }
+                
+                this.__stage3 = function() {
+                    try {
+                        // now we have disconnected -- test disconnected state again
+                        this.__testDisconnected2();
+
+                        this.__test.callback( true );
+                    } catch( e ) {
+                        this.__test.errback( e );
+                    }
+                }
+
+                this.__testDisconnected = function() {
+                    this.__test.assertFalse( this.__hubClient.isConnected() );
+                    testHelper.assertErrorMsg(
+                        OpenAjax.hub.Error.Disconnected,                        // expected error msg
+                        this.__hubClient,                                       // scope
+                        "subscribe",                                            // function name
+                        [   "hub.isconnected",                                  // args
+                            function() {}
+                        ],
+                        "call subscribe() when not connected",
+                        this.__test
+                    );
+                    testHelper.assertErrorMsg(
+                        OpenAjax.hub.Error.Disconnected,                        // expected error msg
+                        this.__hubClient,                                       // scope
+                        "publish",                                              // function name
+                        [   "hub.isconnected",                                  // args
+                            null
+                        ],
+                        "call publish() when not connected",
+                        this.__test
+                    );
+                }
+
+                this.__testDisconnected2 = function() {
+                    this.__testDisconnected();
+
+                    testHelper.assertErrorMsg(
+                        OpenAjax.hub.Error.Disconnected,                        // expected error msg
+                        this.__hubClient,                                       // scope
+                        "getSubscriberData",                                    // function name
+                        [ this.__sid ],                                         // args
+                        "call getSubscriberData() when not connected",
+                        this.__test
+                    );
+                    testHelper.assertErrorMsg(
+                        OpenAjax.hub.Error.Disconnected,                        // expected error msg
+                        this.__hubClient,                                       // scope
+                        "getSubscriberScope",                                   // function name
+                        [ this.__sid ],                                         // args
+                        "call getSubscriberScope() when not connected",
+                        this.__test
+                    );
+                    testHelper.assertErrorMsg(
+                        OpenAjax.hub.Error.Disconnected,                        // expected error msg
+                        this.__hubClient,                                       // scope
+                        "unsubscribe",                                          // function name
+                        [ this.__sid ],                                         // args
+                        "call unsubscribe() when not connected",
+                        this.__test
+                    );
+                }
+
+                this.__testConnected = function() {
+                    this.__test.assertTrue( this.__hubClient.isConnected() );
+
+                    try {
+                        this.__sid = this.__hubClient.subscribe( "hub.isconnected",
+                                function() {}, this, null,
+                                "I am subscriber data!" );
+                        this.__hubClient.publish( "hub.isconnected", "hello" );
+                    } catch( e ) {
+                        this.__test.errback( e );
+                    }
+                }
+                
+                this.__stage1();
+                
+            });
+        }
+    </script>
+</head>
+
+<body onload="init();">
+</body>
+</html>

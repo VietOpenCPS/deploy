@@ -1,0 +1,629 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<!--
+/*******************************************************************************
+ * testPubSub.html:
+ *      Component of the DOH-based test suite for the OpenAjax Hub.
+ *
+ *      This is the unit test for routines having to do with managing event
+ *      publishing and event subscribing. (The "event hub" or "topic bus".)
+ *      [ This is a port of the Hub 1.0 testcases found in _TestPubSub.js. ]
+ *
+ * Copyright 2008 OpenAjax Alliance
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not 
+ * use this file except in compliance with the License. You may obtain a copy 
+ * of the License at http://www.apache.org/licenses/LICENSE-2.0 . Unless 
+ * required by applicable law or agreed to in writing, software distributed 
+ * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
+ * CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+ * specific language governing permissions and limitations under the License.
+ *
+ ******************************************************************************/
+-->
+
+<!--
+TODO:
+(1) Separate out test harness from the file
+(2) Only half of this file has been upgraded to test harness. Need to finish rest of file
+(3) Figure out why test harness can't deal properly with IframeHubClient
+(4) With "manager" hubclient, the test harness is getting duplicate messages
+(5) Study Hub 1.0 pubsub tests and make sure we aren't missing any tests
+(6) Develop pub/sub tests that use iframe-with-iframe, inline-with-iframe, etc.
+-->
+
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Publish/Subscribe Unit Tests</title>
+
+    <style type="text/css">
+        @import "../dojo/dojo/resources/dojo.css";
+    </style>
+    <script type="text/javascript" src="../dojo/dojo/dojo.js" djConfig="isDebug: true"></script>
+
+    <script src="config.js"></script>
+    <!-- loadHub.js dynamically loads a particular configuration of the OpenAjax Hub,
+	     based on the value of URL parameter 'config'. This allows running the same
+		 test against multiple release configurations. -->
+    <script type="text/javascript">loadHub_dirDepth="1";</script>
+    <script src="util/loadHub.js"></script>
+	<script language="JavaScript" type="text/javascript" src="util/getTestURLParams.js"></script>
+
+    <script language="JavaScript" type="text/javascript" src="util/testHelper.js"></script>
+    <script language="JavaScript" type="text/javascript" src="util/test_hub.js"></script>
+    <script language="JavaScript" type="text/javascript" src="unmanagedHub/test_helper_unmanaged.js"></script>
+
+	<script language="JavaScript" type="text/javascript" src="testPubSub.js"></script>
+
+    <script language="JavaScript" type="text/javascript">
+
+        dojo.require( "doh.runner" );
+
+		var SharedFuncs = {
+
+			/**
+			 * @param {String} testname JavaScript global object that holds JS code for test
+			 * @param {Array[String]} scriparray List of functions within testname that should be run in sequence
+			 * @param {Function} checkResultsFunc Callback function to see if test succeeded
+			 * @param {Object} [params] Optional parameters
+			 * @param {Boolean} [params.autoloop] Whether test harness should automatically
+			 *                                    call script N+1 after script N. Default=true
+			 **/
+			setUp: function( testname, scriptarray, checkResultsFunc, params ) {
+				// Reset the list of subscriptions in the global Unmanaged Hub.
+// FIXME: Move to a separate file.
+				OpenAjax.hub._hub._subscriptions = { c:{}, s:null };
+				// Recreate the TestHubManager with each pass so that the control.client
+				// subscription gets recreated.
+				window.testManager = new TestHubManager();
+
+                var that = this;
+				var autoloop;
+				if (params && params.autoloop == false ) {
+					autoloop = false;
+				} else {
+					autoloop = true; // The default is auto looping
+				}
+				this.result = "";
+				this.resultArray = [];
+				this.counterArray = [];
+                this.testManager = testManager;
+				var thatTestManager = this.testManager;
+				thatTestManager.testname = testname;
+				thatTestManager.scriptarray = scriptarray;
+				thatTestManager.scriptcount = 0;
+				thatTestManager.scriptloaded = false;
+
+                // listen for msg from clients
+                this.testManager.onMsg = function( msg ) {
+					var parts = msg.split(":");
+					var command = parts[0];
+					if (command === "ready_to_start" || command === "ready_for_next_command") {
+						if (thatTestManager.scriptloaded === false) {
+							setTimeout( function() {
+								thatTestManager.sendMsg(thatTestManager.clientname+":loadscriptfile:../testPubSub.js"+":"+autoloop);
+								thatTestManager.scriptloaded = true;
+							}, 0 );
+						} else if (thatTestManager.scriptcount < thatTestManager.scriptarray.length) {
+							setTimeout( function() {
+								var funcIndex = thatTestManager.scriptcount;
+								var funcname = thatTestManager.scriptarray[funcIndex];
+								thatTestManager.sendMsg(thatTestManager.clientname+":runscript:"+testname+":"+funcname+":"+funcIndex);
+								thatTestManager.scriptcount++;
+							}, 0 );
+						}
+					} else if (command === "print") {
+						doh.debug(parts[1]);
+					} else if (command === "appendResult") {
+						// shift off the command, then rejoin the string to restore colons in the original message
+						parts.shift();
+						var resultString = parts.join(":");
+						that.result += resultString;
+					} else if (command === "appendToResultArray") {
+						// shift off the command, then rejoin the string to restore colons in the original message
+						parts.shift();
+						var resultArrayIndex = parseInt(parts[0]);
+						// shift off the array index, then rejoin the string to restore colons in the original message
+						parts.shift();
+						var resultString = parts.join(":");
+						if (typeof that.resultArray[resultArrayIndex] == "undefined") {
+							that.resultArray[resultArrayIndex] = "";
+						}
+						that.resultArray[resultArrayIndex] += resultString;
+					} else if (command === "incrementCounterArray") {
+						// shift off the command, then rejoin the string to restore colons in the original message
+						parts.shift();
+						var counterArrayIndex = parseInt(parts[0]);
+						if (typeof that.counterArray[counterArrayIndex] == "undefined") {
+							that.counterArray[counterArrayIndex] = [];
+						}
+						// shift off the array index, then rejoin the string to restore colons in the original message
+						parts.shift();
+						var counterArrayString = parts.join(":");
+						if (typeof that.counterArray[counterArrayIndex][counterArrayString] == "undefined") {
+							that.counterArray[counterArrayIndex][counterArrayString] = 0;
+						}
+						that.counterArray[counterArrayIndex][counterArrayString]++;
+					} else if (command === "errback") {
+						this.d.errback( new Error( parts[1] ) );
+					} else if (command === "testlogiccompleted") {
+						setTimeout( function() {
+							thatTestManager.sendMsg("*:shutdown");
+							setTimeout( function() {
+								var checkResults = checkResultsFunc.call(that); 
+								that.d.callback( checkResults );   // whether test succeeded
+							}, 100 );   // 0.1 second delay so that test tunnel can shut down
+						}, 0 );
+					} else {
+						that.d.callback( false );	// something wrong with message passing
+					}
+				};
+
+                this.managedHub = new OpenAjax.hub.ManagedHub({
+                    onPublish:function(){ return true; },
+                    onSubscribe:function(){ return true; },
+                    onUnsubscribe:function(){ return true; },
+                    scope:this
+								});
+                doh.assertTrue( this.managedHub );
+			},
+
+			runTest: function() {
+                this.d = new doh.Deferred();
+
+				// Note that the *TestContainer constructors cause the client 
+				// to send a "ready" message to the manager,
+				// which causes client to send "ready" message to manager, 
+				// which kicks off the testing sequence.
+				switch (TestURLParams.client0) {
+					case "unmanaged":
+						this.testManager.clientname = "client0";
+						var unmanagedTestContainer = new UnmanagedTestContainer(this.testManager.clientname);
+						break;
+					case "inline":
+						// This constructor causes the client to send a "ready" message to the manager,
+						// which causes client to send "ready" message to manager, which kicks off
+						// the testing sequence.
+						this.testManager.clientname = "client1";
+						var inlineTestContainer = new InlineTestContainer(
+							this.managedHub,
+							this.testManager.clientname,
+							{   Container: {
+									onSecurityAlert: function() {}
+								}
+							}
+						);
+						break;
+					case "iframe":
+						// This constructor causes the client to send a "ready" message to the manager,
+						// which causes client to send "ready" message to manager, which kicks off
+						// the testing sequence.
+						this.testManager.clientname = "client2";
+						var iframeTestContainer = new IframeTestContainer(
+							this.managedHub,
+							this.testManager.clientname,
+							{   Container: {
+									onSecurityAlert: function() {}
+								},
+								IframeContainer: {
+									parent: document.getElementById( "iframe_widget" )
+								}
+							}
+						);
+						break;
+					case "manager":
+						// This constructor causes the client to send a "ready" message to the manager,
+						// which causes client to send "ready" message to manager, which kicks off
+						// the testing sequence.
+						this.testManager.clientname = "client3";
+						var managerTestContainer = new ManagerTestContainer(
+							this.managedHub,
+							this.testManager.clientname
+						);
+						break;
+					case "unmanaged":
+						// This constructor causes the client to send a "ready" message to the manager,
+						// which causes client to send "ready" message to manager, which kicks off
+						// the testing sequence.
+						this.testManager.clientname = "client4";
+						var unmanagedTestContainer = new UnmanagedTestContainer(
+							this.testManager.clientname
+						);
+						break;
+					default:
+						doh.assertTrue( false );  // something wrong with test.
+				}
+
+                doh.assertTrue( true );  // Reach here and publish() did not crash and burn
+                return this.d;
+			},
+			tearDown: function() {
+                this.managedHub.disconnect( );
+				delete this.managedHub;
+			}
+		};
+        
+        /***********************************************************************
+         *  t1_1_1
+         **********************************************************************/
+        var t1_1_1 = {
+            
+            name: "1.1.1",
+            description: "Publish unit tests",
+            timeout: 5000,
+
+            setUp: function()
+            {
+				var funcArray = [ "f1" ];
+				return SharedFuncs.setUp.call( this, "js1_1_1", funcArray, this.checkResults );
+
+            },
+            
+            runTest: function()
+            {
+				return SharedFuncs.runTest.call( this );
+            },
+            
+            tearDown: function()
+            {
+				return SharedFuncs.tearDown.call( this );
+            },
+            
+            checkResults: function()
+            {
+				return true;
+            }
+            
+        }
+        
+        /***********************************************************************
+         *  t1_1_2
+         **********************************************************************/
+        var t1_1_2 = {
+            
+            name: "1.1.2",
+            description: "Subscribe unit tests: subscriberData",
+            timeout: 5000,
+
+            setUp: function()
+            {
+				var funcArray = [ "f1" ];
+				return SharedFuncs.setUp.call( this, "js1_1_2", funcArray, this.checkResults );
+
+            },
+            
+            runTest: function()
+            {
+				return SharedFuncs.runTest.call( this );
+            },
+            
+            tearDown: function()
+            {
+				return SharedFuncs.tearDown.call( this );
+            },
+            
+            checkResults: function()
+            {
+				// See if the subscribe callbacks got called properly.  Since we
+				// cannot determine the order in which the callbacks were
+				// called, we search for the expected results.
+				if( this.result.indexOf( "subCB0: example.event, myDATA" ) == -1 ||
+					this.result.indexOf( "subCB1: example.event, myDATA, mySubscriberData" ) == -1 )
+				{
+					this.d.errback( this.name + ": subscribe callbacks failed" );
+					return false;
+				}
+				return true;
+            }
+            
+        }
+        
+        /***********************************************************************
+         *  t1_2_1
+         **********************************************************************/
+        var t1_2_1 = {
+            
+            name: "1.2.1",
+            description: "Event unit tests",
+            timeout: 8000,
+
+            setUp: function()
+            {
+				var funcArray = [ ];
+				// Call same function every time through the loop.
+				// The function gets index "i" with each call.
+				for (var i = 0; i < js1_2_1.events.length; i++) {
+					funcArray.push("f1");
+				}
+				return SharedFuncs.setUp.call( this, "js1_2_1", funcArray, this.checkResults );
+
+            },
+            
+            runTest: function()
+            {
+				this.result += "1.2.1: start, ";
+				var retval = SharedFuncs.runTest.call( this );
+				return retval;
+            },
+            
+            tearDown: function()
+            {
+				return SharedFuncs.tearDown.call( this );
+            },
+            
+            checkResults: function()
+            {
+				for (var expectedResultLength=0,i=0; i<js1_2_1.expectedResult.length; i++) {
+					expectedResultLength += js1_2_1.expectedResult[i].length;
+				}
+				if (this.result.length !== expectedResultLength) {
+					return false;
+				} else {
+					for (var i=0; i<js1_2_1.expectedResult.length; i++) {
+						if (this.result.indexOf(js1_2_1.expectedResult[i]) === -1) {
+							return false;
+						}
+					}
+					return true;
+				}
+            }
+            
+        }
+
+        /***********************************************************************
+         *  t1_3_1
+         **********************************************************************/
+        var t1_3_1 = {
+            
+            name: "1.3.1",
+            description: "Multiple subscriptions",
+            timeout: 15000,
+
+            setUp: function()
+            {
+				var funcArray = [ ];
+				// Call same function every time through the loop.
+				// The function gets index "i" with each call.
+				// This test has 11 parts
+				for (var i = 0; i < 11; i++) {
+					funcArray.push("f1");
+				}
+				return SharedFuncs.setUp.call( this, "js1_3_1", funcArray, this.checkResults );
+
+            },
+            
+            runTest: function()
+            {
+				var retval = SharedFuncs.runTest.call( this );
+				return retval;
+            },
+            
+            tearDown: function()
+            {
+				return SharedFuncs.tearDown.call( this );
+            },
+            
+            checkResults: function()
+            {
+				for (var i=0; i<js1_3_1.expectedResult.length; i++) {
+					if (js1_3_1.expectedResult[i] === "undefined" || js1_3_1.expectedResult[i].length === 0) {
+						continue;
+					}
+					var expectedResultArray = js1_3_1.expectedResult[i];
+					for (var expectedResultLength=0,j=0; j<expectedResultArray.length; j++) {
+						expectedResultLength += expectedResultArray[j].length;
+					}
+					if (this.resultArray[i].length !== expectedResultLength) {
+						return false;
+					}
+					for (var j=0; j<expectedResultArray.length; j++) {
+						if (this.resultArray[i].indexOf(expectedResultArray[j]) === -1) {
+							return false;
+						}
+					}
+				}
+				return true;
+            }
+            
+        }
+
+        /***********************************************************************
+         *  t2_2
+         **********************************************************************/
+        var t2_2 = {
+            
+            name: "2.2",
+            description: "Publish and subscribe: wildcards",
+            timeout: 8000,
+
+            setUp: function()
+            {
+				var funcArray = [ "f1" ];
+				return SharedFuncs.setUp.call( this, "js2_2", funcArray, this.checkResults );
+
+            },
+            
+            runTest: function()
+            {
+				var retval = SharedFuncs.runTest.call( this );
+				return retval;
+            },
+            
+            tearDown: function()
+            {
+				return SharedFuncs.tearDown.call( this );
+            },
+            
+            checkResults: function()
+            {
+				for (var i=0; i<js2_2.expectedResult.length; i++) {
+					if (js2_2.expectedResult[i] === "undefined" || js2_2.expectedResult[i].length === 0) {
+						continue;
+					}
+					var expectedResultArray = js2_2.expectedResult[i];
+					for (var expectedResultLength=0,j=0; j<expectedResultArray.length; j++) {
+						expectedResultLength += expectedResultArray[j].length;
+					}
+					if (this.resultArray[i].length !== expectedResultLength) {
+						return false;
+					}
+					for (var j=0; j<expectedResultArray.length; j++) {
+						if (this.resultArray[i].indexOf(expectedResultArray[j]) === -1) {
+							return false;
+						}
+					}
+				}
+				return true;
+            }
+            
+        }
+
+        /***********************************************************************
+         *  t3_1
+         **********************************************************************/
+        var t3_1 = {
+            
+            name: "3.1",
+            description: "API use in callbacks",
+            timeout: 8000,
+
+            setUp: function()
+            {
+				var funcArray = [ ];
+				// Call same function every time through the loop.
+				// The function gets index "i" with each call.
+				// This test has 10 parts
+				for (var i = 0; i < 10; i++) {
+					funcArray.push("run");
+				}
+				return SharedFuncs.setUp.call( this, "js3_1", funcArray, this.checkResults, {autoloop:false} );
+
+            },
+            
+            runTest: function()
+            {
+				var retval = SharedFuncs.runTest.call( this );
+				return retval;
+            },
+            
+            tearDown: function()
+            {
+				return SharedFuncs.tearDown.call( this );
+            },
+            
+            checkResults: function()
+            {
+				if (this.resultArray.length !== js3_1.expectedResult.length) {
+					return false;
+				}
+				for (var i=0; i<js3_1.expectedResult.length; i++) {
+					if (js3_1.expectedResult[i] !== this.resultArray[i]) {
+						return false;
+					}
+				}
+				var check0 = this.counterArray[0];
+				if (check0["setup"] != 1) return false;
+				if (check0["fire"] != 1) return false;
+				if (check0["check"] != 1) return false;
+
+				var check1 = this.counterArray[1];
+				if (check1["setup_trigger"] != 1) return false;
+				if (check1["setup_target"] != 1) return false;
+				if (check1["fire_trigger"] != 1) return false;
+				if (check1["fire_target"] != null) return false;
+				if (check1["check_trigger"] != null) return false;
+				if (check1["check_target"] != 1) return false;
+
+				var check2 = this.counterArray[2];
+				if (check2["setup_trigger"] != 1) return false;
+				if (check2["setup_target"] != null) return false;
+				if (check2["fire_trigger"] != 1) return false;
+				if (check2["fire_target"] != null) return false;
+				if (check2["check_trigger"] != 1) return false;
+				if (check2["check_target"] != 1) return false;
+
+				var check3 = this.counterArray[3];
+				if (check3["setup_trigger"] != 1) return false;
+				if (check3["setup_target"] != null) return false;
+				if (check3["fire_trigger"] != 1) return false;
+				if (check3["fire_target"] != null) return false;
+				if (check3["check_trigger"] != 1) return false;
+				if (check3["check_target"] != 1) return false;
+
+				var check4 = this.counterArray[4];
+				if (check4["setup_trigger"] != 1) return false;
+				if (check4["setup_target"] != 1) return false;
+				if (check4["fire_trigger"] != 1) return false;
+				if (check4["fire_target"] != null) return false;
+				if (check4["check_trigger"] != 1) return false;
+				if (check4["check_target"] != null) return false;
+
+				var check5 = this.counterArray[5];
+				if (check5["setup_trigger"] != 1) return false;
+				if (check5["setup_target"] != 1) return false;
+				if (check5["fire_trigger"] != 1) return false;
+				if (check5["fire_target"] != null) return false;
+				if (check5["check_trigger"] != 1) return false;
+				if (check5["check_target"] != null) return false;
+
+				var check6 = this.counterArray[6];
+				if (check6["setup"] != 1) return false;
+				if (check6["fire"] != 1) return false;
+				if (check6["check"] != null) return false;
+
+				var check7 = this.counterArray[7];
+				if (check7["setup_trigger"] != 1) return false;
+				if (check7["setup_target"] != null) return false;
+				if (check7["fire_trigger"] != 1) return false;
+				if (check7["fire_target"] != null) return false;
+				if (check7["check1_trigger"] != 1) return false;
+				if (check7["check1_target"] != 1) return false;
+				if (check7["check2_trigger"] != 1) return false;
+				if (check7["check2_target"] != 1) return false;
+
+				var check8 = this.counterArray[8];
+				if (check8["setup_trigger"] != 1) return false;
+				if (check8["setup_target"] != null) return false;
+				if (check8["fire_trigger"] != 1) return false;
+				if (check8["fire_target"] != null) return false;
+				if (check8["check1_trigger"] != null) return false;
+				if (check8["check1_target"] != 1) return false;
+				if (check8["check2_trigger"] != 1) return false;
+				if (check8["check2_target"] != 1) return false;
+
+				return true;
+            }
+            
+        }
+        
+        /**********************************************************************/
+
+        dojo.addOnLoad( function() {
+            // Set testHelper.config to the value of the URL parameter 'config'
+            testHelper.setConfigFromURLParam();
+			
+            // merge the base test 'class' into each test object
+            var tests = [ t1_1_1, t1_1_2, t1_2_1, t1_3_1, t2_2, t3_1 ];
+            dojo.forEach( tests,
+                function() {
+                    dojo.mixin( arguments[0], testHelper );
+                }, null );
+            
+            // register tests
+            doh.register( "t1", tests );
+            
+            // run the tests
+            doh.run();
+        });
+        
+    </script>
+</head>
+
+<body>
+<h1>Publish/Subscribe Unit Tests</h1>
+
+<p>This page contains a tests the publish and subscribe methods.</p>
+<div id="iframe_widget"></div>
+</body>
+</html>

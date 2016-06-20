@@ -1,0 +1,433 @@
+<?xml version="1.0"?>
+
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="WebApp_ID" version="2.5" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+	<display-name>opencps-portlet</display-name>
+	<context-param>
+		<param-name>axis.servicesPath</param-name>
+		<param-value>/api/axis/</param-value>
+	</context-param>
+	<filter>
+		<filter-name>Invoker Filter - ERROR</filter-name>
+		<filter-class>com.liferay.portal.kernel.servlet.filters.invoker.InvokerFilter</filter-class>
+		<init-param>
+			<param-name>dispatcher</param-name>
+			<param-value>ERROR</param-value>
+		</init-param>
+	</filter>
+	<filter>
+		<filter-name>Invoker Filter - FORWARD</filter-name>
+		<filter-class>com.liferay.portal.kernel.servlet.filters.invoker.InvokerFilter</filter-class>
+		<init-param>
+			<param-name>dispatcher</param-name>
+			<param-value>FORWARD</param-value>
+		</init-param>
+	</filter>
+	<filter>
+		<filter-name>Invoker Filter - INCLUDE</filter-name>
+		<filter-class>com.liferay.portal.kernel.servlet.filters.invoker.InvokerFilter</filter-class>
+		<init-param>
+			<param-name>dispatcher</param-name>
+			<param-value>INCLUDE</param-value>
+		</init-param>
+	</filter>
+	<filter>
+		<filter-name>Invoker Filter - REQUEST</filter-name>
+		<filter-class>com.liferay.portal.kernel.servlet.filters.invoker.InvokerFilter</filter-class>
+		<init-param>
+			<param-name>dispatcher</param-name>
+			<param-value>REQUEST</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>Invoker Filter - ERROR</filter-name>
+		<url-pattern>/*</url-pattern>
+		<dispatcher>ERROR</dispatcher>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>Invoker Filter - FORWARD</filter-name>
+		<url-pattern>/*</url-pattern>
+		<dispatcher>FORWARD</dispatcher>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>Invoker Filter - INCLUDE</filter-name>
+		<url-pattern>/*</url-pattern>
+		<dispatcher>INCLUDE</dispatcher>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>Invoker Filter - REQUEST</filter-name>
+		<url-pattern>/*</url-pattern>
+		<dispatcher>REQUEST</dispatcher>
+	</filter-mapping>
+	<listener>
+		<listener-class>com.liferay.portal.kernel.servlet.PluginContextListener</listener-class>
+	</listener>
+	<listener>
+		<listener-class>com.liferay.portal.kernel.servlet.SerializableSessionAttributeListener</listener-class>
+	</listener>
+	<servlet>
+		<servlet-name>VerifyEmailServlet</servlet-name>
+		<servlet-class>org.opencps.servlet.VerifyEmailServlet</servlet-class>
+		<init-param>
+			<param-name>config</param-name>
+			<param-value>/WEB-INF/struts-config.xml</param-value>
+		</init-param>
+		<init-param>
+			<param-name>debug</param-name>
+			<param-value>0</param-value>
+		</init-param>
+		<init-param>
+			<param-name>detail</param-name>
+			<param-value>0</param-value>
+		</init-param>
+		<load-on-startup>0</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>1 Servlet</servlet-name>
+		<servlet-class>com.liferay.portal.kernel.servlet.PortletServlet</servlet-class>
+		<init-param>
+			<param-name>portlet-class</param-name>
+			<param-value>org.opencps.datamgt.portlet.DataMamagementPortlet</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>2 Servlet</servlet-name>
+		<servlet-class>com.liferay.portal.kernel.servlet.PortletServlet</servlet-class>
+		<init-param>
+			<param-name>portlet-class</param-name>
+			<param-value>org.opencps.usermgt.portlet.UserMgtPortlet</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>3 Servlet</servlet-name>
+		<servlet-class>com.liferay.portal.kernel.servlet.PortletServlet</servlet-class>
+		<init-param>
+			<param-name>portlet-class</param-name>
+			<param-value>org.opencps.usermgt.portlet.UserMgtEditProfilePortlet</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>4 Servlet</servlet-name>
+		<servlet-class>com.liferay.portal.kernel.servlet.PortletServlet</servlet-class>
+		<init-param>
+			<param-name>portlet-class</param-name>
+			<param-value>org.opencps.usermgt.portlet.UserContactPortlet</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>5 Servlet</servlet-name>
+		<servlet-class>com.liferay.portal.kernel.servlet.PortletServlet</servlet-class>
+		<init-param>
+			<param-name>portlet-class</param-name>
+			<param-value>org.opencps.accountmgt.portlet.AccountRegPortlet</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>6 Servlet</servlet-name>
+		<servlet-class>com.liferay.portal.kernel.servlet.PortletServlet</servlet-class>
+		<init-param>
+			<param-name>portlet-class</param-name>
+			<param-value>org.opencps.accountmgt.portlet.AccountProfilePortlet</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>8 Servlet</servlet-name>
+		<servlet-class>com.liferay.portal.kernel.servlet.PortletServlet</servlet-class>
+		<init-param>
+			<param-name>portlet-class</param-name>
+			<param-value>org.opencps.accountmgt.portlet.AccountMgtPortlet</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>9 Servlet</servlet-name>
+		<servlet-class>com.liferay.portal.kernel.servlet.PortletServlet</servlet-class>
+		<init-param>
+			<param-name>portlet-class</param-name>
+			<param-value>org.opencps.servicemgt.portlet.ServiceMgtPortlet</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>10 Servlet</servlet-name>
+		<servlet-class>com.liferay.portal.kernel.servlet.PortletServlet</servlet-class>
+		<init-param>
+			<param-name>portlet-class</param-name>
+			<param-value>org.opencps.servicemgt.portlet.ServiceDirectoryPortlet</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>11 Servlet</servlet-name>
+		<servlet-class>com.liferay.portal.kernel.servlet.PortletServlet</servlet-class>
+		<init-param>
+			<param-name>portlet-class</param-name>
+			<param-value>org.opencps.servicemgt.portlet.ServiceMenuPortlet</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>15 Servlet</servlet-name>
+		<servlet-class>com.liferay.portal.kernel.servlet.PortletServlet</servlet-class>
+		<init-param>
+			<param-name>portlet-class</param-name>
+			<param-value>org.opencps.processmgt.portlet.ProcessMgtAdminPortlet</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>16 Servlet</servlet-name>
+		<servlet-class>com.liferay.portal.kernel.servlet.PortletServlet</servlet-class>
+		<init-param>
+			<param-name>portlet-class</param-name>
+			<param-value>org.opencps.processmgt.portlet.ProcessOrderPortlet</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>17 Servlet</servlet-name>
+		<servlet-class>com.liferay.portal.kernel.servlet.PortletServlet</servlet-class>
+		<init-param>
+			<param-name>portlet-class</param-name>
+			<param-value>org.opencps.processmgt.portlet.ProcessOrderMenuPortlet</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>18 Servlet</servlet-name>
+		<servlet-class>com.liferay.portal.kernel.servlet.PortletServlet</servlet-class>
+		<init-param>
+			<param-name>portlet-class</param-name>
+			<param-value>org.opencps.processmgt.portlet.DossierMgtBackOfficePortlet</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>12 Servlet</servlet-name>
+		<servlet-class>com.liferay.portal.kernel.servlet.PortletServlet</servlet-class>
+		<init-param>
+			<param-name>portlet-class</param-name>
+			<param-value>org.opencps.dossiermgt.portlet.DossierMgtAdminPortlet</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>13 Servlet</servlet-name>
+		<servlet-class>com.liferay.portal.kernel.servlet.PortletServlet</servlet-class>
+		<init-param>
+			<param-name>portlet-class</param-name>
+			<param-value>org.opencps.dossiermgt.portlet.DossierMgtFrontOfficePortlet</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>14 Servlet</servlet-name>
+		<servlet-class>com.liferay.portal.kernel.servlet.PortletServlet</servlet-class>
+		<init-param>
+			<param-name>portlet-class</param-name>
+			<param-value>org.opencps.dossiermgt.portlet.DossierStateMenuPortlet</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>19 Servlet</servlet-name>
+		<servlet-class>com.liferay.portal.kernel.servlet.PortletServlet</servlet-class>
+		<init-param>
+			<param-name>portlet-class</param-name>
+			<param-value>org.opencps.dossiermgt.portlet.DossierMornitoringPortlet</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>Dynamic Resource Servlet</servlet-name>
+		<servlet-class>com.liferay.portal.kernel.servlet.PortalClassLoaderServlet</servlet-class>
+		<init-param>
+			<param-name>servlet-class</param-name>
+			<param-value>com.liferay.portal.webserver.DynamicResourceServlet</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>Atom Servlet</servlet-name>
+		<servlet-class>com.liferay.portal.kernel.servlet.PortalClassLoaderServlet</servlet-class>
+		<init-param>
+			<param-name>servlet-class</param-name>
+			<param-value>com.liferay.portal.servlet.AtomServlet</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>Axis Servlet</servlet-name>
+		<servlet-class>com.liferay.portal.kernel.servlet.PortalClassLoaderServlet</servlet-class>
+		<init-param>
+			<param-name>servlet-class</param-name>
+			<param-value>com.liferay.portal.servlet.AxisServlet</param-value>
+		</init-param>
+		<init-param>
+			<param-name>use-portlet-class-loader</param-name>
+			<param-value>true</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>JSON Servlet</servlet-name>
+		<servlet-class>com.liferay.portal.kernel.servlet.PortalClassLoaderServlet</servlet-class>
+		<init-param>
+			<param-name>servlet-class</param-name>
+			<param-value>com.liferay.portal.servlet.JSONServlet</param-value>
+		</init-param>
+		<init-param>
+			<param-name>use-portlet-class-loader</param-name>
+			<param-value>true</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet>
+		<servlet-name>JSON Web Service Servlet</servlet-name>
+		<servlet-class>com.liferay.portal.kernel.servlet.PortalClassLoaderServlet</servlet-class>
+		<init-param>
+			<param-name>servlet-class</param-name>
+			<param-value>com.liferay.portal.jsonwebservice.JSONWebServiceServlet</param-value>
+		</init-param>
+		<init-param>
+			<param-name>use-portlet-class-loader</param-name>
+			<param-value>true</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>VerifyEmailServlet</servlet-name>
+		<url-pattern>/verify/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>1 Servlet</servlet-name>
+		<url-pattern>/1/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>2 Servlet</servlet-name>
+		<url-pattern>/2/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>3 Servlet</servlet-name>
+		<url-pattern>/3/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>4 Servlet</servlet-name>
+		<url-pattern>/4/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>5 Servlet</servlet-name>
+		<url-pattern>/5/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>6 Servlet</servlet-name>
+		<url-pattern>/6/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>8 Servlet</servlet-name>
+		<url-pattern>/8/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>9 Servlet</servlet-name>
+		<url-pattern>/9/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>10 Servlet</servlet-name>
+		<url-pattern>/10/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>11 Servlet</servlet-name>
+		<url-pattern>/11/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>15 Servlet</servlet-name>
+		<url-pattern>/15/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>16 Servlet</servlet-name>
+		<url-pattern>/16/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>17 Servlet</servlet-name>
+		<url-pattern>/17/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>18 Servlet</servlet-name>
+		<url-pattern>/18/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>12 Servlet</servlet-name>
+		<url-pattern>/12/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>13 Servlet</servlet-name>
+		<url-pattern>/13/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>14 Servlet</servlet-name>
+		<url-pattern>/14/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>19 Servlet</servlet-name>
+		<url-pattern>/19/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>Dynamic Resource Servlet</servlet-name>
+		<url-pattern>/sprite/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>Atom Servlet</servlet-name>
+		<url-pattern>/api/atom/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>Axis Servlet</servlet-name>
+		<url-pattern>/api/axis/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>JSON Servlet</servlet-name>
+		<url-pattern>/api/json/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>JSON Web Service Servlet</servlet-name>
+		<url-pattern>/api/jsonws/*</url-pattern>
+	</servlet-mapping>
+	<jsp-config>
+		<taglib>
+			<taglib-uri>http://opencps.org/datamgt</taglib-uri>
+			<taglib-location>/WEB-INF/tld/opencps-datamgt.tld</taglib-location>
+		</taglib>
+		<taglib>
+			<taglib-uri>http://liferay.com/tld/aui</taglib-uri>
+			<taglib-location>/WEB-INF/tld/aui.tld</taglib-location>
+		</taglib>
+		<taglib>
+			<taglib-uri>http://java.sun.com/portlet_2_0</taglib-uri>
+			<taglib-location>/WEB-INF/tld/liferay-portlet.tld</taglib-location>
+		</taglib>
+		<taglib>
+			<taglib-uri>http://liferay.com/tld/portlet</taglib-uri>
+			<taglib-location>/WEB-INF/tld/liferay-portlet-ext.tld</taglib-location>
+		</taglib>
+		<taglib>
+			<taglib-uri>http://liferay.com/tld/security</taglib-uri>
+			<taglib-location>/WEB-INF/tld/liferay-security.tld</taglib-location>
+		</taglib>
+		<taglib>
+			<taglib-uri>http://liferay.com/tld/theme</taglib-uri>
+			<taglib-location>/WEB-INF/tld/liferay-theme.tld</taglib-location>
+		</taglib>
+		<taglib>
+			<taglib-uri>http://liferay.com/tld/ui</taglib-uri>
+			<taglib-location>/WEB-INF/tld/liferay-ui.tld</taglib-location>
+		</taglib>
+		<taglib>
+			<taglib-uri>http://liferay.com/tld/util</taglib-uri>
+			<taglib-location>/WEB-INF/tld/liferay-util.tld</taglib-location>
+		</taglib>
+	</jsp-config>
+</web-app>
