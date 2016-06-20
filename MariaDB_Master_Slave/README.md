@@ -52,7 +52,7 @@ mysql_secure_installation
 ####Trên Master Server:
 - Down initdata của OpenCPS.
 ```
-cd /tmp && wget https://github.com/tuhoanganh/deploy/raw/master/MariaDB_Master_Slave/opencps.tar.gz && tar -zxvf opencps.tar.gz
+cd /tmp && wget https://github.com/VietOpenCPS/deploy/raw/master/MariaDB_Master_Slave/opencps.tar.gz && tar -zxvf opencps.tar.gz
 ```
 - Đăng nhập vào CSDL MariaDB (sẽ yêu cầu password mà bạn đã tạo ở trên)
 ```
