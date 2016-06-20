@@ -1,0 +1,159 @@
+<html>
+<head>
+    <!-- Reusable HTML file that acts as shell for the various pubsub tests in the test suite, driven by URL params -->
+    <title> Publish/subscribe tests </title>
+
+    <script src="../dojo/dojo/dojo.js" djConfig="isDebug: true"></script>
+    
+    <script src="config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="1";</script>
+	<script type="text/javascript">
+		var TestURLParams = {};
+		TestURLParams.testname = null;
+		TestURLParams.testscriptfile = null;
+		TestURLParams.testobjname = null;
+		TestURLParams.getTestURLParams = function () {
+			var qstr = window.location.search.substr(1);
+			if(qstr.length){
+				var qparts = qstr.split("&");
+				for(var x=0; x<qparts.length; x++){
+					var tp = qparts[x].split("=");
+					if (tp[0] === "testname") {
+						TestURLParams.testname = tp[1];
+					} else if (tp[0] === "testscriptfile") {
+						TestURLParams.testscriptfile = tp[1];
+					} else if (tp[0] === "testobjname") {
+						TestURLParams.testobjname = tp[1];
+					}
+				}
+			}
+			document.write("<scr"+"ipt type='text/javascript' src='pubsubtests/"+TestURLParams.testscriptfile+"'></scr"+"ipt>");
+		}();
+	</script>
+    <script src="util/loadHub.js"></script>
+    <script src="util/test_hub.js"></script>
+    <script src="util/testHelper.js"></script>
+
+    <script src="ifr/test_iframe_container.js"></script>
+    <script src="inline/test_inline_container.js"></script>
+    <script src="manager/test_manager_container.js"></script>
+
+    <script>
+        dojo.require( "doh.runner" );
+        dojo.addOnLoad( function() {
+            doh.run();
+        });
+        
+        // create test container object based on URL param
+        var testctn = null;
+        var re = new RegExp( "[\\?&]module=([^&#]*)" );
+        var match = (re.exec( window.location.search ))[1];
+        var containerName = decodeURIComponent( match.replace( /\+/g, "%20" ) );
+        switch( containerName ) {
+            case "inline":
+                testctn = TestInlineContainer;
+                break;
+            case "iframe":
+                testctn = TestIframeContainer;
+                break;
+            case "manager":
+                testctn = TestManagerContainer;
+                break;
+        }
+
+        var managedHub = null;
+		var testname = TestURLParams.testname;
+		var testscriptfile = TestURLParams.testscriptfile;
+		var testobjname = TestURLParams.testobjname;
+
+        doh.registerGroup( "HubClient tests for " + containerName + " containers",
+            // tests
+            [
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "test pubsub "+testname,
+                    description: "test pubsub "+testname,
+                    timeout: 40000,
+                    setUp: function()
+                    {
+                        this.testManager = new TestHubManager();
+                    },
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+                        
+                        var origin = window.location.protocol + "//" + window.location.hostname;
+                        
+                        // listen for msg from client
+                        var that = this;
+                        this.testManager.onMsg = function( data ) {
+                            var msg = data[0];
+                            var result = data[1];
+                            that.d.getTestErrback( function() {
+                                switch( msg ) {
+                                    case "start":
+                                        that.testManager.sendMsg( "runscript");
+                                        break;
+                                    case "done":
+                                        that.d.callback( true );
+                                        break;
+                                }
+                            })();
+                        };
+                
+                        function onClientSecurityAlert( container, securityAlert ) {
+                            this.d.errback( "client " + container.getClientID() + " security alert: " + securityAlert );
+                        }
+                        
+                        var container = testctn.createContainerForTest(
+                            "pubsub_client",
+                            managedHub,
+                            "pubsub_client",
+                            {   Container: {
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this,
+                                    log: this.testManager.log
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            },
+							null,
+							"testscriptfile="+testscriptfile+"&testobjname="+testobjname
+                        );
+                
+                        return this.d;
+                    },
+                    tearDown: function()
+                    {
+                        this.testManager.cleanup();
+                    }
+                }
+            ],
+    
+            // group setup
+            function() {
+                managedHub = new OpenAjax.hub.ManagedHub({
+                        onPublish: function() { return true; },
+                        onSubscribe: function() { return true; },
+                        log: function( msg ) {
+                            console.log( msg );
+                        }
+        		});
+                doh.assertTrue( managedHub );
+            } 
+// Comment this out - causes FF2 to hang in DOH
+//           ,
+//            // group tear down
+//            function() {
+//                managedHub.disconnect();
+//            }
+        );
+        
+    </script>
+</head>
+<body>
+    <div id="iframe_widget"></div>
+</body>
+</html>

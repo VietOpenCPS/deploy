@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!DOCTYPE tiles-definitions PUBLIC "-//Apache Software Foundation//DTD Tiles Configuration 1.1//EN" "http://jakarta.apache.org/struts/dtds/tiles-config_1_1.dtd">
+
+<tiles-definitions>
+	<definition name="opencps-verify-email-success" path="/html/common/verify_email_success.jsp">
+		<put name="title" value=""></put>
+		<put name="selectable" value="false"></put>
+	</definition>
+	<definition name="opencps-verify-email-error" path="/html/common/verify_email_error.jsp">
+		<put name="title" value=""></put>
+		<put name="selectable" value="false"></put>
+	</definition>
+	<definition name="verify.email.success" extends="opencps-verify-email-success">
+		<put name="title" value="test"></put>
+		<put name="content" value="/html/common/verify_email_success.jsp"></put>
+	</definition>
+	<definition name="verify.email.error" extends="opencps-verify-email-error">
+		<put name="title" value="test"></put>
+		<put name="content" value="/html/common/verify_email_error.jsp"></put>
+	</definition>
+</tiles-definitions>

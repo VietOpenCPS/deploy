@@ -1,0 +1,8 @@
+#Wed May 04 09:29:12 ICT 2016
+json.service.auth.token.enabled=false
+include-and-override=portal-developer.properties
+auto.deploy.tomcat.conf.dir=/server/tomcat-7.0.62/conf/Catalina/localhost
+jsonws.web.service.public.methods=*
+com.liferay.portal.servlet.filters.etag.ETagFilter=false
+com.liferay.portal.servlet.filters.header.HeaderFilter=false
+auto.deploy.interval=1000

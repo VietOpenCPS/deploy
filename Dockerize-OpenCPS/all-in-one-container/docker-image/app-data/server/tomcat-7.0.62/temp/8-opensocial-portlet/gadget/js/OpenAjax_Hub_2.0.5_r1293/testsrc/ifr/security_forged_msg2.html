@@ -1,0 +1,54 @@
+<html>
+<head>
+    <title>Iframe Client</title>
+    
+    <script src="../config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="2";</script>
+    <script src="../util/loadHub.js"></script>
+    
+    <script src="../util/test_hub.js"></script>
+    <script src="../util/testHelper.js"></script>
+    
+    <script type="text/javascript">
+        var hubClient;
+        var test;
+    
+        function init()
+        {
+            new TestHubClient( "iframe", function( testHubClient ) {
+            
+                test = testHubClient;
+            
+                hubClient = new OpenAjax.hub.IframeHubClient({
+                        HubClient: {
+                            onSecurityAlert: onHubClientSecurityAlert,
+                            log: test.log
+                        }
+                });
+                hubClient.connect( onHubClientConnect );
+            
+            });
+        }
+        
+        function onHubClientConnect( item, success, error )
+        {
+            hubClient.subscribe( "topic",
+                    function( topic, data ) {
+                        test.callback( false, "got forged message" );
+                    }
+            );
+        }
+    
+        function onHubClientSecurityAlert( source, alertType )
+        {
+            test.log( "\tSecurity alert  hub client=" + source.getClientID() + "  alert=" + alertType );
+            test.assertEqual( hubClient, source );
+            test.assertEqual( OpenAjax.hub.SecurityAlert.ForgedMsg, alertType );
+            test.callback( true, "iframe_client" );
+        }
+    </script>
+</head>
+
+<body onload="init();">
+</body>
+</html>

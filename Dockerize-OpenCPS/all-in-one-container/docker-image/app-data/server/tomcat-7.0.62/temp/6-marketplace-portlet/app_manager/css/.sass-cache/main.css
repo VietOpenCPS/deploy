@@ -1,0 +1,64 @@
+.marketplace-portlet .alert-container {
+  left: 3em;
+  position: fixed;
+  top: 3em;
+  z-index: 100; }
+  .marketplace-portlet .alert-container .alert {
+    margin-bottom: .5em; }
+.marketplace-portlet .row {
+  margin-left: 0; }
+.marketplace-portlet .category-nav {
+  padding-left: 0;
+  padding-right: 0; }
+.marketplace-portlet .app {
+  clear: both;
+  min-height: 90px;
+  margin-bottom: 2.5em;
+  position: relative; }
+  .marketplace-portlet .app .icon {
+    background: white url(../images/app.png) no-repeat;
+    float: left;
+    height: 90px;
+    width: 90px; }
+  .marketplace-portlet .app .info {
+    margin-left: 110px; }
+  .marketplace-portlet .app .app-actions {
+    position: absolute;
+    right: 0;
+    top: 0; }
+  .marketplace-portlet .app .title {
+    color: #009EC3;
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: .2em; }
+  .marketplace-portlet .app .sub-title {
+    color: #999;
+    font-size: .8em; }
+  .marketplace-portlet .app .version {
+    font-weight: bold;
+    margin-right: 132px; }
+  .marketplace-portlet .app .description {
+    margin-right: 132px; }
+  .marketplace-portlet .app .plugins {
+    margin-top: 1em; }
+    .marketplace-portlet .app .plugins ul {
+      margin-bottom: 0;
+      margin-top: 0; }
+    .marketplace-portlet .app .plugins .summary {
+      cursor: pointer;
+      margin: 0; }
+      .marketplace-portlet .app .plugins .summary li {
+        display: inline;
+        margin-right: .5em; }
+    .marketplace-portlet .app .plugins .table td {
+      vertical-align: middle; }
+    .marketplace-portlet .app .plugins .table td:last-child {
+      text-align: right; }
+    .marketplace-portlet .app .plugins .plugin-list {
+      display: none;
+      margin-top: 1em; }
+    .marketplace-portlet .app .plugins.active .plugin-list {
+      display: block; }
+.marketplace-portlet .install-apps .control-group {
+  margin-left: 20px; }
+

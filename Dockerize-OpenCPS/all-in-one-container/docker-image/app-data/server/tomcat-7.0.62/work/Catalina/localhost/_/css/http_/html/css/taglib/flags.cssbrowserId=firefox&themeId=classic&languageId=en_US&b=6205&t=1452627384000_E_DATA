@@ -1,0 +1,4 @@
+.taglib-flags {
+  display: inline-block; }
+  .taglib-flags span a {
+    margin-right: 2px; }

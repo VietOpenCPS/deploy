@@ -1,0 +1,23 @@
+.permissions-table-container {
+  overflow: auto; }
+  .permissions-table-container table tbody td, .permissions-table-container table thead th {
+    text-align: center;
+    word-break: normal; }
+    .permissions-table-container table tbody td:first-child, .permissions-table-container table thead th:first-child {
+      text-align: left; }
+
+@media (max-width: 979px) {
+  .permissions-table-container table tbody td:first-child {
+    text-align: center; }
+  .permissions-table-container table thead th, .permissions-table-container table thead th:first-child {
+    text-align: right; }
+  .permissions-table-container table label.hidden-label {
+    display: block;
+    overflow: hidden;
+    width: 10px; }
+
+  .ie9 .permissions-table-container table thead th {
+    text-align: center; }
+    .ie9 .permissions-table-container table thead th:first-child {
+      text-align: left; } }
+

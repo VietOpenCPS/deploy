@@ -1,0 +1,623 @@
+<html>
+<head>
+    <title> Container Interface Tests </title>
+    
+    <script type="text/javascript" src="../dojo/dojo/dojo.js" djConfig="isDebug: true"></script>
+    
+    <script type="text/javascript" src="config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="1";</script>
+    <script type="text/javascript" src="util/loadHub.js"></script>
+
+    <script type="text/javascript" src="util/test_hub.js"></script>
+    <script type="text/javascript" src="util/testHelper.js"></script>
+
+    <script type="text/javascript" src="ifr/test_iframe_container.js"></script>
+    <script type="text/javascript" src="inline/test_inline_container.js"></script>
+
+    <script type="text/javascript">
+        dojo.require( "doh.runner" );
+        dojo.addOnLoad( function() {
+            doh.run();
+        });
+        
+        // create test container object based on URL param
+        var testctn = null;
+        var re = new RegExp( "[\\?&]module=([^&#]*)" );
+        var match = (re.exec( window.location.search ))[1];
+        var containerName = decodeURIComponent( match.replace( /\+/g, "%20" ) );
+        switch( containerName ) {
+            case "inline":
+                testctn = TestInlineContainer;
+                break;
+            case "iframe":
+                testctn = TestIframeContainer;
+                break;
+            case "manager":
+                testctn = TestManagerContainer;
+                break;
+        }
+
+        var managedHub = null;
+        
+        doh.registerGroup( "Container tests for " + containerName + " containers",
+            // tests
+            [
+                {
+                    name: "container constructor OpenAjax.hub.Error.BadParameters",
+                    description: "Test Container constructor OpenAjax.hub.Error.BadParameters errors",
+                    runTest: function()
+                    {
+                        // test with missing "hub" param
+                        testHelper.assertErrorMsg(
+                            OpenAjax.hub.Error.BadParameters,                   // expected error msg
+                            testctn,                                            // scope
+                            "createContainerForTest",                           // function name
+                            [   "container_connect",                            // args
+                                null,
+                                "badparams_client2",
+                                {   Container: {
+                                        onSecurityAlert: function() {}
+                                    },
+                                    IframeContainer: {
+                                        parent: document.getElementById( "iframe_widget" )
+                                    }
+                                }
+                            ],
+                            "missing 'hub' param"
+                        );
+                    
+                        // test with missing "clientID" param
+                        testHelper.assertErrorMsg(
+                            OpenAjax.hub.Error.BadParameters,                   // expected error msg
+                            testctn,                                            // scope
+                            "createContainerForTest",                           // function name
+                            [   "container_connect",                            // args
+                                managedHub,
+                                null,
+                                {   Container: {
+                                        onSecurityAlert: function() {}
+                                    },
+                                    IframeContainer: {
+                                        parent: document.getElementById( "iframe_widget" )
+                                    }
+                                }
+                            ],
+                            "missing 'clientID' param"
+                        );
+                    
+                        // test with missing "params" param
+                        testHelper.assertErrorMsg(
+                            OpenAjax.hub.Error.BadParameters,                   // expected error msg
+                            testctn,                                            // scope
+                            "createContainerForTest",                           // function name
+                            [   "container_connect",                            // args
+                                managedHub,
+                                "badparams_client2",
+                                null
+                            ],
+                            "missing 'params' param"
+                        );
+                    
+                        // test with missing "params.Container.onSecurityAlert" param
+                        testHelper.assertErrorMsg(
+                            OpenAjax.hub.Error.BadParameters,                   // expected error msg
+                            testctn,                                            // scope
+                            "createContainerForTest",                           // function name
+                            [   "container_connect",                            // args
+                                managedHub,
+                                "badparams_client3",
+                                {   IframeContainer: {
+                                        parent: document.getElementById( "iframe_widget" )
+                                    }
+                                }
+                            ],
+                            "missing 'params.Container.onSecurityAlert' param"
+                        );
+                    
+                        // IframeContainer tests
+                        if ( containerName == "iframe" ) {
+                            var pathToTestsrc = testHelper.pathToTestsrc(window.location.href);
+                            var tunnelUri = testHelper.tunnelURIFromConfigURLParam(pathToTestsrc);
+
+                            // test with missing "params.IframeContainer.parent" param
+                            testHelper.assertErrorMsg(
+                                OpenAjax.hub.Error.BadParameters,                   // expected error msg
+                                testctn,                                            // scope
+                                "createContainerForTest",                           // function name
+                                [   "container_connect",                            // args
+                                    managedHub,
+                                    "badparams_client3",
+                                    {   Container: {
+                                            onSecurityAlert: function() {}
+                                        },
+                                        IframeContainer: {
+                                            uri: COMPONENT1_DOMAIN + HUB20_PATH + "/testsrc/ifr/container_connect.html",
+                                            tunnelURI: tunnelUri
+                                        }
+                                    },
+                                    true
+                                ],
+                                "missing 'params.IframeContainer.parent' param"
+                            );
+
+                            // test with missing "params.IframeContainer.uri" param
+                            testHelper.assertErrorMsg(
+                                OpenAjax.hub.Error.BadParameters,                   // expected error msg
+                                testctn,                                            // scope
+                                "createContainerForTest",                           // function name
+                                [   "container_connect",                            // args
+                                    managedHub,
+                                    "badparams_client3",
+                                    {   Container: {
+                                            onSecurityAlert: function() {}
+                                        },
+                                        IframeContainer: {
+                                            parent: document.getElementById( "iframe_widget" ),
+                                            tunnelURI: tunnelUri
+                                        }
+                                    },
+                                    true
+                                ],
+                                "missing 'params.IframeContainer.uri' param"
+                            );
+                        }
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "container constructor OpenAjax.hub.Error.Duplicate",
+                    description: "Test Container constructor OpenAjax.hub.Error.Duplicate errors",
+                    runTest: function()
+                    {
+                        // create one container with a given ID ...
+                        var container1 = testctn.createContainerForTest(
+                            "container_connect",
+                            managedHub,
+                            "duplicate_client1",
+                            {   Container: {
+                                    onSecurityAlert: function() {}
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+                        
+                        // ... then create another container with the same ID
+                        testHelper.assertErrorMsg(
+                            OpenAjax.hub.Error.Duplicate,                       // expected error msg
+                            testctn,                                            // scope
+                            "createContainerForTest",                           // function name
+                            [   "container_connect",                            // args
+                                managedHub,
+                                "duplicate_client1",
+                                {   Container: {
+                                        onSecurityAlert: function() {}
+                                    },
+                                    IframeContainer: {
+                                        parent: document.getElementById( "iframe_widget" )
+                                    }
+                                }
+                            ],
+                            "duplicate container ID"
+                        );
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "container constructor OpenAjax.hub.Error.Disconnected",
+                    description: "Test Container constructor OpenAjax.hub.Error.Disconnected errors",
+                    runTest: function()
+                    {
+                        // don't use the common "managedHub" -- create a new one
+                        // since we need to disconnect it
+                        var hub = new OpenAjax.hub.ManagedHub({
+                                onPublish: function() { return true; },
+                                onSubscribe: function() { return true; },
+                                log: function( msg ) {
+                                    console.log( msg );
+                                }
+                		});
+                        doh.assertTrue( hub );
+                        
+                        hub.disconnect();
+                        
+                        // try to create a container that connects to
+                        // disconnected hub
+                        testHelper.assertErrorMsg(
+                            OpenAjax.hub.Error.Disconnected,                    // expected error msg
+                            testctn,                                            // scope
+                            "createContainerForTest",                           // function name
+                            [   "container_connect",                            // args
+                                hub,
+                                "disconnect_hub_client",
+                                {   Container: {
+                                        onSecurityAlert: function() {}
+                                    },
+                                    IframeContainer: {
+                                        parent: document.getElementById( "iframe_widget" )
+                                    }
+                                }
+                            ],
+                            "disconnected hub"
+                        );
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "container onConnect",
+                    description: "Test onConnect callback and scope param for Container constructor",
+                    timeout: 3000,
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+                        var that = this;
+                        
+                        function onClientDisconnect( container ) {
+                            that.d.errback( "client disconnected" );
+                        }
+                        function onClientSecurityAlert( container, securityAlert ) {
+                            that.d.errback( "client security alert: " + securityAlert );
+                        }
+                        
+                        // create one container with scope set to "this"
+                        function onClient1Connect( container ) {
+                            that.d.getTestErrback( function() {
+                                doh.assertEqual( that, this, "wrong scope for onConnect callback (client1)" );
+                                doh.assertEqual( container1, container, "wrong 'container' param for onConnect callback (client1)" );
+                                this._connected( "client1" );
+                            }, this )();
+                        }
+                        var container1 = testctn.createContainerForTest(
+                            "container_connect",
+                            managedHub,
+                            "connect_client1",
+                            {   Container: {
+                                    onConnect: onClient1Connect,
+                                    onDisconnect: onClientDisconnect,
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+                        
+                        // create another container with no scope (should default to "window")
+                        function onClient2Connect( container ) {
+                            that.d.getTestErrback( function() {
+                                doh.assertEqual( window, this, "wrong scope for onConnect callback (client2)" );
+                                doh.assertEqual( container2, container, "wrong 'container' param for onConnect callback (client2)" );
+                                that._connected( "client2" );
+                            }, this )();
+                        }
+                        var container2 = testctn.createContainerForTest(
+                            "container_connect",
+                            managedHub,
+                            "connect_client2",
+                            {   Container: {
+                                    onConnect: onClient2Connect,
+                                    onDisconnect: onClientDisconnect,
+                                    onSecurityAlert: onClientSecurityAlert
+                                    // no scope
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+                
+                        return this.d;
+                    },
+                    _connected: function( client )
+                    {
+                        this[ client + "_connected" ] = true;
+                        if ( this.client1_connected && this.client2_connected ) {
+                            this.d.callback( true );
+                        }
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "container onDisconnect",
+                    description: "Test onDisconnect callback and scope param for Container constructor",
+                    timeout: 3000,
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+                        var that = this;
+                        
+                        function onClientSecurityAlert( container, securityAlert ) {
+                            that.d.errback( "client security alert: " + securityAlert );
+                        }
+                        
+                        // create one container with scope set to "this"
+                        function onClient1Disconnect( container ) {
+                            var _this = this;
+                            that.d.getTestErrback( function() {
+                                doh.assertEqual( that, _this, "wrong scope for onDisconnect callback (client1)" );
+                                doh.assertEqual( container1, container, "wrong 'container' param for onDisconnect callback (client1)" );
+                                that._disconnected( "client1" );
+                            })();
+                        }
+                        var container1 = testctn.createContainerForTest(
+                            "container_disconnect",
+                            managedHub,
+                            "disconnect_client1",
+                            {   Container: {
+                                    onDisconnect: onClient1Disconnect,
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+                        
+                        // create another container with no scope (should default to "window")
+                        function onClient2Disconnect( container ) {
+                            var _this = this;
+                            that.d.getTestErrback( function() {
+                                doh.assertEqual( window, _this, "wrong scope for onDisconnect callback (client2)" );
+                                doh.assertEqual( container2, container, "wrong 'container' param for onDisconnect callback (client2)" );
+                                that._disconnected( "client2" );
+                            })();
+                        }
+                        var container2 = testctn.createContainerForTest(
+                            "container_disconnect",
+                            managedHub,
+                            "disconnect_client2",
+                            {   Container: {
+                                    onDisconnect: onClient2Disconnect,
+                                    onSecurityAlert: onClientSecurityAlert
+                                    // no scope
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+                
+                        return this.d;
+                    },
+                    _disconnected: function( client )
+                    {
+                        this[ client + "_disconnected" ] = true;
+                        if ( this.client1_disconnected && this.client2_disconnected ) {
+                            this.d.callback( true );
+                        }
+                    }
+                },
+
+                ////////////////////////////////////////////////////////////////
+                
+                // Container's onSecurityAlert callback tested in security tests file
+
+                ////////////////////////////////////////////////////////////////
+                
+                // XXX test for params.Container.log param
+                
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "container.isConnected",
+                    description: "Test the Container.isConnected function",
+                    timeout: 3000,
+                    setUp: function()
+                    {
+                        this.testManager = new TestHubManager();
+                    },
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+                        
+                        // test that Container.isConnected returns true after
+                        // container has connected, then disconnect container
+                        // and test that Container.isConnected returns false
+                        function onClientConnect( container ) {
+                            this.d.getTestErrback( function() {
+                                doh.assertTrue( container.isConnected(), "container connected, but isConnected returned false" );
+                            })();
+                        }
+                        function onClientDisconnect( container ) {
+                            this.d.getTestCallback( function() {
+                                doh.assertFalse( container.isConnected(), "container not connected, but isConnected returned true" );
+                            })();
+                        }
+                        function onClientSecurityAlert( container, securityAlert ) {
+                            this.d.errback( "client security alert: " + securityAlert );
+                        }
+                        
+                        var container = testctn.createContainerForTest(
+                            "container_disconnect",
+                            managedHub,
+                            "isconnected_client",
+                            {   Container: {
+                                    onConnect: onClientConnect,
+                                    onDisconnect: onClientDisconnect,
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+                
+                        return this.d;
+                    },
+                    tearDown: function()
+                    {
+                        this.testManager.cleanup();
+                    }
+                },
+
+                ////////////////////////////////////////////////////////////////
+
+                {
+                    name: "container.getClientID",
+                    description: "Test the Container.getClientID function",
+                    runTest: function()
+                    {
+                        var ctn1ID = "getClientID_client1";
+                        var ctn2ID = "getClientID_client2";
+
+                        var container1 = testctn.createContainerForTest(
+                            "container_connect",
+                            managedHub,
+                            ctn1ID,
+                            {   Container: {
+                                    onSecurityAlert: function() {}
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+                        var container2 = testctn.createContainerForTest(
+                            "container_connect",
+                            managedHub,
+                            ctn2ID,
+                            {   Container: {
+                                    onSecurityAlert: function() {}
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+                        
+                        doh.assertEqual( ctn1ID, container1.getClientID() );
+                        doh.assertEqual( ctn2ID, container2.getClientID() );
+                    }
+                },
+
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "container.getPartnerOrigin",
+                    description: "Test the Container.getPartnerOrigin function",
+                    timeout: 5000,
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+                        
+                        var clientOrigin;
+                        if ( containerName == "inline" ) {
+                            clientOrigin = window.location.protocol + "//" + window.location.hostname;
+                        } else {
+                            // remove port for URL, if any
+                            clientOrigin = new RegExp( "^([a-zA-Z]+://[^:]+).*" ).exec( COMPONENT1_DOMAIN )[1];
+                        }
+                        
+                        client_connected = 0;
+                        
+                        function onClientConnect( container ) {
+                            this.d.getTestErrback( function() {
+                                doh.assertEqual( clientOrigin, container.getPartnerOrigin(), "partner origin not equal to expected value" );
+                            })();
+                            
+                            client_connected++;
+                            if ( client_connected == 2 ) {
+                                this.d.callback( true );
+                            }
+                        }
+                        function onClientDisconnect( container ) {
+                            this.d.getTestErrback( function() {
+                                doh.assertEqual( null, container.getPartnerOrigin(), "partner origin should be 'null' when not connected" );
+                            })();
+                        }
+                        function onClientSecurityAlert( container, securityAlert ) {
+                            this.d.errback( "client security alert: " + securityAlert );
+                        }
+                        
+                        var container = testctn.createContainerForTest(
+                            "container_getpartnerorigin",
+                            managedHub,
+                            "getpartnerorigin_client",
+                            {   Container: {
+                                    onConnect: onClientConnect,
+                                    onDisconnect: onClientDisconnect,
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this,
+                                    log: function( msg ) {
+                                            console.log( msg );
+                                        }
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+                        
+                        this.d.getTestErrback( function() {
+                            doh.assertTrue( container.isConnected || clientOrigin == container.getPartnerOrigin() );
+                        })();
+                
+                        return this.d;
+                    }
+                },
+
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "container.getParameters",
+                    description: "Test the Container.getParameters() function",
+                    timeout: 5000,
+                    runTest: function()
+                    {
+                        var params = {
+                            Container: {
+                                onSecurityAlert: function() {},
+                                scope: this
+                            },
+                            IframeContainer: {
+                                parent: document.getElementById( "iframe_widget" )
+                            }
+                        };
+                        
+                        var container = testctn.createContainerForTest(
+                            "container_connect",
+                            managedHub,
+                            "getparams_client",
+                            params
+                        );
+                        
+                        doh.assertEqual( params, container.getParameters(), "getParameters() didn't returned expected object" );
+                    }
+                }
+            ],
+    
+            // group setup
+            function() {
+                managedHub = new OpenAjax.hub.ManagedHub({
+                        onPublish: function() { return true; },
+                        onSubscribe: function() { return true; },
+                        log: function( msg ) {
+                            console.log( msg );
+                        }
+        		});
+                doh.assertTrue( managedHub );
+            },
+    
+            // group tear down
+            function() {
+                managedHub.disconnect();
+            }
+        );
+    </script>
+</head>
+<body>
+    <div id="iframe_widget"></div>
+</body>
+</html>

@@ -1,0 +1,692 @@
+<html>
+<head>
+    <title> Container Interface Tests </title>
+    
+    <script src="../dojo/dojo/dojo.js" djConfig="isDebug: true"></script>
+    
+    <script src="config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="1";</script>
+    <script src="util/loadHub.js"></script>
+    <script src="util/test_hub.js"></script>
+    <script src="util/testHelper.js"></script>
+
+    <script src="ifr/test_iframe_container.js"></script>
+    <script src="inline/test_inline_container.js"></script>
+
+    <script>
+        dojo.require( "doh.runner" );
+        dojo.addOnLoad( function() {
+            doh.run();
+        });
+        
+        doh.registerGroup( "Security tests",
+            // tests
+            [
+                {
+                    name: "load timeout",
+                    description: "Test that the load timeout fires if the container doesn't connect in the specified time",
+                    timeout: 20000,
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+                        
+                        function onClientSecurityAlert( container, alertType) {
+                            doh.debug( "\tSecurity alert  container=" + container.getClientID() + "  alert=" + alertType );
+                            this.d.getTestErrback( function() {
+                                doh.assertEqual( OpenAjax.hub.SecurityAlert.LoadTimeout, alertType );
+                            })();
+                            this[ container.getClientID() + "_loadtimeout" ] = true;
+                        }
+                        
+                        // load container without a preset timeout -- defaults
+                        // to 15 seconds
+                        var container1 = TestIframeContainer.createContainerForTest(
+                            "security_timeout1",
+                            managedHub,
+                            "timeout_client1",
+                            {   Container: {
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this,
+                                    log: function( msg ) {
+                                            console.log( msg );
+                                        }
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+                        // load a container with a shorter timeout
+                        var container2 = TestIframeContainer.createContainerForTest(
+                            "security_timeout1",
+                            managedHub,
+                            "timeout_client2",
+                            {   Container: {
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this,
+                                    log: function( msg ) {
+                                            console.log( msg );
+                                        }
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" ),
+                                    timeout: 2000
+                                }
+                            }
+                        );
+                        
+                        // setup a couple of setTimeouts to check that the
+                        // LoadTimeouts have fired
+                        var that = this;
+                        setTimeout( function() {
+                                that.d.getTestErrback( function() {
+                                    doh.assertTrue( that.timeout_client1_loadtimeout,
+                                            "client1 did not fire LoadTimeout in time");
+                                })();
+                                that._completed( "client1" );
+                            }, 16000
+                        );
+                        setTimeout( function() {
+                                that.d.getTestErrback( function() {
+                                    doh.assertTrue( that.timeout_client2_loadtimeout,
+                                            "client2 did not fire LoadTimeout in time");
+                                })();
+                                that._completed( "client2" );
+                            }, 3000
+                        );
+                        
+                        return this.d;
+                    },
+                    _completed: function( client )
+                    {
+                        this[ client + "_completed" ] = true;
+                        if ( this.client1_completed && this.client2_completed ) {
+                            this.d.callback( true );    // tests succeeded
+                        }
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "load timeout after disconnect",
+                    description: "Test that the load timeout fires after the client has disconnected",
+                    timeout: 6000,
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+                        
+                        function onClientDisconnect( container ) {
+                            this[ container.getClientID() + "_disconnected" ] = true;
+                        }
+                        function onClientSecurityAlert( container, alertType) {
+                            doh.debug( "\tSecurity alert  container=" + container.getClientID() + "  alert=" + alertType );
+                            this.d.getTestErrback( function() {
+                                doh.assertEqual( OpenAjax.hub.SecurityAlert.LoadTimeout, alertType );
+                                doh.assertTrue( this.timeout_client3_disconnected, "client 3 should have already disconnected" );
+                            }, this)();
+                            this[ container.getClientID() + "_loadtimeout" ] = true;
+                        }
+                        
+                        var container = TestIframeContainer.createContainerForTest(
+                            "security_timeout2",
+                            managedHub,
+                            "timeout_client3",
+                            {   Container: {
+                                    onDisconnect: onClientDisconnect,
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this,
+                                    log: function( msg ) {
+                                            console.log( msg );
+                                        }
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" ),
+                                    timeout: 3000
+                                }
+                            }
+                        );
+                        
+                        // set a setTimeout to check that the LoadTimeouts has
+                        // fired
+                        var that = this;
+                        setTimeout( function() {
+                                that.d.getTestCallback( function() {
+                                    doh.assertTrue( that.timeout_client3_loadtimeout,
+                                            "client3 did not fire LoadTimeout in time");
+                                })();
+                                // test succeeded
+                            }, 4000
+                        );
+                        
+                        return this.d;
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "load timeout disallows connect",
+                    description: "Test that a client cannot connect after load timeout has fired",
+                    timeout: 5000,
+                    setUp: function()
+                    {
+                        this.testManager = new TestHubManager();
+                    },
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+                        
+                        // listen for msg from client
+                        var that = this;
+                        this.testManager.onMsg = function( msg ) {
+                            if ( msg == "done" ) {
+                                that.d.callback( true ); // test succeeded
+                            }
+                        };
+
+                        function onClientConnect( container ) {
+                            this.d.errback( "client was able to connect after load timeout" );
+                        }
+                        function onClientSecurityAlert( container, alertType) {
+                            doh.debug( "\tSecurity alert  container=" + container.getClientID() + "  alert=" + alertType );
+                            this.d.getTestErrback( function() {
+                                doh.assertEqual( OpenAjax.hub.SecurityAlert.LoadTimeout, alertType );
+                            })();
+                            
+                            // tell client to try to connect
+                            this.testManager.sendMsg( "connect" );
+                        }
+                        
+                        this.container = TestIframeContainer.createContainerForTest(
+                            "security_timeout3",
+                            managedHub,
+                            "timeout_client4",
+                            {   Container: {
+                                    onConnect: onClientConnect,
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this,
+                                    log: function( msg ) {
+                                            console.log( msg );
+                                        }
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" ),
+                                    timeout: 3000
+                                }
+                            }
+                        );
+                        
+                        return this.d;
+                    },
+                    tearDown: function()
+                    {
+                        managedHub.removeContainer( this.container );
+                        this.testManager.cleanup();
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "frame phishing",
+                    description: "Test that the FramePhish error is thrown when iframe src changes",
+                    timeout: 2000,
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+                        
+                        function onClientConnect( container ) {
+                            // Client has connected.  Now change iframe src --
+                            // should cause FramePhish security alert
+                            container.getIframe().src = "http://www.openajax.org";
+                        }
+                        function onClientSecurityAlert( container, alertType) {
+                            doh.debug( "\tSecurity alert  container=" + container.getClientID() + "  alert=" + alertType );
+                            this.d.getTestCallback( function() {
+                                doh.assertEqual( OpenAjax.hub.SecurityAlert.FramePhish, alertType );
+                            }, this)();
+                            // test succeeded
+                        }
+                        
+                        var container = TestIframeContainer.createContainerForTest(
+                            "container_connect",
+                            managedHub,
+                            "frame_phish_client",
+                            {   Container: {
+                                    onConnect: onClientConnect,
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this,
+                                    log: function( msg ) {
+                                            console.log( msg );
+                                        }
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+                        
+                        return this.d;
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "forged message from client",
+                    description: "Test that the IframeContainer throws a ForgedMsg error",
+                    //
+                    // See the file 'security_malicious1.html' for an explanation
+                    // of the forged message techniques used.
+                    //
+                    timeout: 6000,
+                    CLIENT_ID: "forged_msg_client1",
+                    setUp: function() {
+                        this.testManager = new TestHubManager();
+
+                        if ( window.postMessage ) {
+                            this._PM = true;
+                        } else if ( window.ActiveXObject ) {
+                            this._NIX = true;
+                        } else {
+                            this._FIM = true;
+                        }
+                        
+                        if ( this._PM ) {
+                            this._scopedReceiveMsg = doh.hitch( this, this._receiveMsg );
+                            if ( window.addEventListener ) {
+                                window.addEventListener( "message", this._scopedReceiveMsg, false); 
+                            } else if ( window.attachEvent ) {
+                                window.attachEvent( "onmessage", this._scopedReceiveMsg );
+                            }
+                        }
+                    },
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+                        
+                        // listen for msg from clients
+                        var that = this;
+                        this.testManager.onMsg = function( msg ) {
+                            // If browser security does not allow the test to
+                            // continue (i.e. test cannot access sibling iframe)
+                            // it will notify us here.
+                            if ( msg == "passed" ) {
+                                that.d.callback( true ); // test succeeded
+                            }
+                        };
+                        
+                        function onClientConnect( container ) {
+                            if ( this._NIX ) {
+                                for ( var id in OpenAjax.hub.IframeContainer._containers ) {
+                                    if ( id.indexOf( this.CLIENT_ID ) !== -1 ) {
+                                        this._loadMaliciousFrame( id );
+                                        break;
+                                    }
+                                }
+                            } else if ( this._FIM ) {
+// XXX
+                                var tunnel = window.frames["TEST_CLIENT"].frames["3827816c-f3b1-11db-8314-0800200c9a66"];
+                                this._loadMaliciousFrame( encodeURIComponent( tunnel.location.href ) );
+                            }
+                        }
+                        
+                        function onClientSecurityAlert( container, alertType) {
+                            doh.debug( "\tSecurity alert  container=" + container.getClientID() + "  alert=" + alertType );
+                            this.d.getTestCallback( function() {
+                                doh.assertEqual( OpenAjax.hub.SecurityAlert.ForgedMsg, alertType );
+                            }, this)();
+                            // test succeeded
+                        }
+                        
+                        var container = TestIframeContainer.createContainerForTest(
+                            "container_connect",
+                            managedHub,
+                            this.CLIENT_ID,
+                            {   Container: {
+                                    onConnect: onClientConnect,
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this,
+                                    log: function( msg ) {
+                                            console.log( msg );
+                                        }
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+                        
+                        return this.d;
+                    },
+                    tearDown: function() {
+                        if ( this._PM ) {
+                            this._stopListening();
+                        }
+                        this.testManager.cleanup();
+                    },
+                    _receiveMsg: function( event ) {
+                        try {
+                            var msg = JSON.parse( event.data );
+                            if ( msg.i.indexOf( this.CLIENT_ID ) !== -1 ) {
+                                // don't want to receive any more messages
+                                this._stopListening();
+                                
+                                // Received a msg from the client. Pass msg to
+                                // malicious client so it can try to forge a
+                                // message.
+                                this._loadMaliciousFrame( event.data );
+                            }
+                        } catch( e ) {}
+                    },
+                    _stopListening: function() {
+                        if ( window.removeEventListener ) {
+                            window.removeEventListener( "message", this._scopedReceiveMsg, false );
+                        } else {
+                            window.detachEvent( "onmessage", this._scopedReceiveMsg );
+                        }
+                    },
+                    _loadMaliciousFrame: function( msg ) {
+                        // load malicious iframe, in different domain than test
+                        // page and client
+                        TestIframeContainer.createContainerForTest(
+                            "security_malicious1",
+                            managedHub,
+                            "malicious_client",
+                            {   Container: {
+                                    onSecurityAlert: function() {},
+                                    scope: this,
+                                    log: function( msg ) {
+                                            console.log( msg );
+                                        }
+                                },
+                                IframeContainer: {
+                                    uri: TestIframeContainer.createIframeURI(
+                                            COMPONENT2_DOMAIN + HUB20_PATH + "/testsrc/ifr/security_malicious1.html",
+                                            "msg=" + encodeURIComponent( msg ) ),
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+
+                {
+                    name: "forged message to client",
+                    description: "Test that the IframeHubClient throws a ForgedMsg error",
+                    //
+                    // See the file 'security_malicious2.html' for an explanation
+                    // of the forged message techniques used.
+                    //
+                    timeout: 8000,
+                    setUp: function()
+                    {
+                        this.testManager = new TestHubManager();
+                    },
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+                        
+                        // listen for msg from client
+                        var that = this;
+                        this.testManager.onMsg = function( data ) {
+                            var result = data.r;
+                            var msg = data.m;
+                            if ( result ) {
+                                switch ( msg ) {
+                                    case "iframe_client":
+                                        that.d.callback( true );
+                                        break;
+                                    case "malicious_client1":
+                                        doh.debug( "\tThis browser does not allow an iframe to access its sibling iframe's properties (i.e. 'location')." );
+                                        that.d.callback( true );
+                                        break;
+                                    case "malicious_client2":
+                                        // Forged msg attempted.  Set a timeout
+                                        // to see if forged msg was successful
+                                        // or if security alert raised.  If
+                                        // nothing happens when timeout hits,
+                                        // assume that browser did not allow
+                                        // changing another iframe's src.
+                                        setTimeout(
+                                            function() {
+                                                doh.debug( "\tTest timeout -- assume forged msg was unsuccessful" );
+                                                that.d.callback( true );
+                                            },
+                                            2000
+                                        );
+                                        break;
+                                }
+                            } else {
+                                that.d.errback( msg );
+                            }
+                        };
+
+                        function onClientSecurityAlert( container, alertType) {
+                            // this callback should not be invoked
+                            doh.debug( "\tSecurity alert  container=" + container.getClientID() + "  alert=" + alertType );
+                            this.d.errback( "IframeContainer incorrectly invoked onSecuritAlert callback" );
+                        }
+
+                        var container1 = TestIframeContainer.createContainerForTest(
+                            "security_forged_msg2",
+                            managedHub,
+                            "forged_msg_client2",
+                            {   Container: {
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this,
+                                    log: this.testManager.log
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+
+                        // load malicious iframe, in different domain than test
+                        // page and client
+                        var container2 = TestIframeContainer.createContainerForTest(
+                            "security_malicious2",
+                            managedHub,
+                            "malicious_client2",
+                            {   Container: {
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this,
+                                    log: this.testManager.log
+                                },
+                                IframeContainer: {
+                                    uri: TestIframeContainer.createIframeURI( COMPONENT2_DOMAIN + HUB20_PATH + "/testsrc/ifr/security_malicious2.html" ),
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+
+                        return this.d;
+                    },
+                    tearDown: function()
+                    {
+                        this.testManager.cleanup();
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "IframeContainer 'seed' and 'tokenLength' params",
+                    description: "Test the 'seed' and 'tokenLength' parameters to IframeContainer",
+                    //
+                    //  Test that the function passed as 'seed' gets called.
+                    // For the postMessage impl, we also test that the security
+                    // token length is affected by the 'tokenLength' param.
+                    // For the FIM impl, we test the 'seed' callback on the
+                    // IframeHubClient side.
+                    //
+                    timeout: 5000,
+                    setUp: function()
+                    {
+                        this.testManager = new TestHubManager();
+                        this.seedCalled = 0;
+                        this.hubclient_seeded = 0;
+                    },
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+                        
+                        
+                        var onClientConnect;
+                        if ( window.postMessage ) {
+                            // listen for msg from client
+                            this.testManager.onMsg = doh.hitch( this, this._pm_onMsg );
+                            onClientConnect = function() {};
+                        } else {    // if FIM impl
+                            // listen for msg from client
+                            this.testManager.onMsg = doh.hitch( this, this._fim_onMsg );
+                            onClientConnect = this._fim_onConnect;
+                        }
+
+                        function onClientSecurityAlert( container, alertType) {
+                            this.d.errback( alertType );
+                        }
+                        
+                        // create one iframe container with default token length
+                        var container1 = TestIframeContainer.createContainerForTest(
+                            "security_seed",
+                            managedHub,
+                            "client1",
+                            {   Container: {
+                                    onConnect: onClientConnect,
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this,
+                                    log: function( msg ) {
+                                            console.log( msg );
+                                        }
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" ),
+                                    seed: this._generateSeed
+                                }
+                            }
+                        );
+                        
+                        // create another container with a custom token length
+                        var container2 = TestIframeContainer.createContainerForTest(
+                            "security_seed",
+                            managedHub,
+                            "client2",
+                            {   Container: {
+                                    onConnect: onClientConnect,
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this,
+                                    log: function( msg ) {
+                                            console.log( msg );
+                                        }
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" ),
+                                    seed: this._generateSeed,
+                                    tokenLength: 25
+                                }
+                            }
+                        );
+                        
+                        return this.d;
+                    },
+                    // used to test both postMessage and FIM impls
+                    _generateSeed: function()
+                    {
+                        doh.debug( "\tcalling _generateSeed()" );
+                        this.seedCalled++;
+                        return "foo" + this.seedCalled;
+                    },
+                    // postMessage impl only test functions
+                    _pm_onMsg: function( msg ) {
+                        var id = msg.id;
+                        var tokenLength = msg.length;
+
+                        this.d.getTestErrback( function() {
+                            switch ( id ) {
+                                case "client1":
+                                    doh.assertEqual( 6, tokenLength );
+                                    break;
+                                case "client2":
+                                    doh.assertEqual( 25, tokenLength );
+                                    break;
+                            }
+                        })();
+                        
+                        this[ id + "_completed" ] = true;
+                        if ( this.client1_completed && this.client2_completed ) {
+                            this._pm_completed();
+                        }
+                    },
+                    _pm_completed: function()
+                    {
+                        this.d.getTestCallback( function() {
+                            // make sure the 'seed' function was called twice,
+                            // once for each container
+                            doh.assertEqual( 2, this.seedCalled, "IframeContainer 'seed' callback not called" );
+                            
+                            // test succeeded
+                        }, this )();
+                    },
+                    // FIM impl only test functions
+                    _fim_onMsg: function( msg ) {
+                        if ( msg == "hubclient_seeded" ) {
+                            this.hubclient_seeded++;
+                            this._fim_completed();
+                        }
+                    },
+                    _fim_onConnect: function( container )
+                    {
+                        this[ container.getClientID() + "_connected" ] = true;
+                        this._fim_completed();
+                    },
+                    _fim_completed: function()
+                    {
+                        if ( this.client1_connected &&
+                                this.client2_connected &&
+                                this.hubclient_seeded == 2 )
+                        {
+                            this.d.getTestCallback( function() {
+                                // make sure the 'seed' function was called twice,
+                                // once for each container
+                                doh.assertEqual( 2, this.seedCalled, "IframeContainer 'seed' callback not called" );
+                            
+                                // test succeeded
+                            }, this )();
+                        }
+                    },
+                    tearDown: function()
+                    {
+                        this.testManager.cleanup();
+                    }
+                }
+
+            ],
+    
+            // group setup
+            function() {
+                managedHub = new OpenAjax.hub.ManagedHub({
+                        onPublish: function() { return true; },
+                        onSubscribe: function() { return true; },
+                        log: function( msg ) {
+                            console.log( msg );
+                        }
+        		});
+                doh.assertTrue( managedHub );
+            },
+    
+            // group tear down
+            function() {
+                managedHub.disconnect();
+            }
+        );
+    </script>
+</head>
+<body>
+    <div id="iframe_widget"></div>
+</body>
+</html>

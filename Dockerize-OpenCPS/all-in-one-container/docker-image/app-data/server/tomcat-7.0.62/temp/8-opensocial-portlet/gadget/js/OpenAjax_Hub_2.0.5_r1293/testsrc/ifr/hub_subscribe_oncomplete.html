@@ -1,0 +1,83 @@
+<html>
+<head>
+    <title>Iframe Client</title>
+    
+    <script src="../config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="2";</script>
+    <script src="../util/loadHub.js"></script>
+    
+    <script src="../util/test_hub.js"></script>
+    <script src="../util/testHelper.js"></script>
+
+    <script type="text/javascript">
+        var hubClient;
+        var test;
+        
+        function init()
+        {
+            new TestHubClient( "iframe", function( testHubClient ) {
+                
+                test = testHubClient;
+                
+                hubClient = new OpenAjax.hub.IframeHubClient({
+                        HubClient: {
+                            onSecurityAlert: function() {},
+                            log: test.log
+                        }
+                });
+                hubClient.connect( onHubClientConnect );
+                
+            });
+        }
+        
+        function onHubClientConnect()
+        {
+            // subscribe with no scope
+            var sid = hubClient.subscribe( "hub.subscribe.oncomplete",
+                    function() {},
+                    null,
+                    function( item, success, error ) {
+                        var subID = item;
+                        test.assertTrue( success );
+                        test.assertEqual( window, this );
+                        test.assertEqual( window, hubClient.getSubscriberScope( subID ) ); // tests scope and that 'item' is a sub id
+                        test.callback( true, "test1" );
+                    }
+            );
+            test.assertTrue( typeof sid === "string", "subscriptionID is not a string" );
+
+            // subscribe with scope
+            function MyObject() {
+                this.onComplete = function( item, success, error ) {
+                    var subID = item;
+                    test.assertTrue( success );
+                    test.assertEqual( myObject, this );
+                    test.assertEqual( myObject, hubClient.getSubscriberScope( subID ) ); // tests scope and that 'item' is a sub id
+                    test.callback( true, "test2" );
+                };
+            }
+            var myObject = new MyObject();
+            hubClient.subscribe( "hub.subscribe.oncomplete",
+                    function() {},
+                    myObject,
+                    myObject.onComplete
+            );
+
+            // subscribe to topic that should be disallowed (OpenAjax.hub.Error.NotAllowed)
+            hubClient.subscribe( "hub.subscribe.oncomplete.xxxx",
+                    function() {},
+                    null,
+                    function( item, success, error ) {
+                        test.assertFalse( success );
+                        test.assertEqual( OpenAjax.hub.Error.NotAllowed, error );
+                        test.assertEqual( window, this );
+                        test.callback( true, "test3" );
+                    }
+            );
+        }
+    </script>
+</head>
+
+<body onload="init();">
+</body>
+</html>

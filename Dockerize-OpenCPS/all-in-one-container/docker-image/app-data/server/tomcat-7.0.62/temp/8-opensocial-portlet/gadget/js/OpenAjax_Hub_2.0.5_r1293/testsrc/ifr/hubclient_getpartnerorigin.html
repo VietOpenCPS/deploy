@@ -1,0 +1,74 @@
+<html>
+<head>
+    <title>Iframe Client</title>
+    
+    <script src="../config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="2";</script>
+    <script src="../util/loadHub.js"></script>
+    
+    <script src="../util/test_hub.js"></script>
+
+    <script type="text/javascript">
+        var hubClient = null;
+        
+        function init()
+        {
+            new TestHubClient( "iframe", function( test ) {
+
+                test.onMsg = function( data ) {
+                    switch( data ) {
+                        case "stage2":
+                            stage2();
+                            break;
+                        case "stage3":
+                            stage3();
+                            break;
+                        case "stage4":
+                            stage4();
+                            break;
+                    }
+                };
+
+                var hubClient;
+
+                function stage1() {
+                    hubClient = new OpenAjax.hub.IframeHubClient({
+                          HubClient: {
+                              onSecurityAlert: function() {},
+                              log: test.log
+                          }
+                    });
+
+                    test.sendMsg( [ "stage1", hubClient.getPartnerOrigin() ] );
+                }
+
+                function stage2() {
+                    hubClient.connect( function( item, success, error ) {
+                        test.sendMsg( [ "stage2", hubClient.getPartnerOrigin() ] );
+                    });
+                }
+
+                function stage3() {
+                    hubClient.disconnect( function( item, success, error ) {
+                        test.sendMsg( [ "stage3", hubClient.getPartnerOrigin() ] );
+                    });
+                }
+
+                function stage4() {
+                    // reconnect
+                    hubClient.connect( function( item, success, error ) {
+                        test.sendMsg( [ "stage4", hubClient.getPartnerOrigin() ] );
+                    });
+                }
+
+                // start tests
+                stage1();
+                
+            });
+        }
+    </script>
+</head>
+
+<body onload="init();">
+</body>
+</html>

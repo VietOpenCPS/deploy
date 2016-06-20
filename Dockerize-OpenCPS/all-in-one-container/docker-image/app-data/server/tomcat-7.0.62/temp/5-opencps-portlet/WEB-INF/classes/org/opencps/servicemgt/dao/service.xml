@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 6.2.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_6_2_0.dtd">
+<service-builder package-path="org.opencps.servicemgt">
+	<author>khoavd</author>
+	<namespace>servicemgt</namespace>
+
+	<entity name="ServiceInfo" local-service="true"
+		remote-service="true" table="opencps_serviceinfo" uuid="true">
+
+		<!-- PK fields -->
+
+		<column name="serviceinfoId" type="long" primary="true" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="groupId" type="long" />
+		<column name="userId" type="long" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="serviceNo" type="String" />
+		<column name="serviceName" type="String"/>
+		<column name="shortName" type="String" />
+		<column name="serviceProcess" type="String"/>
+		<column name="serviceMethod" type="String" />
+		<column name="serviceDossier" type="String" />
+		<column name="serviceCondition" type="String" />
+		<column name="serviceDuration" type="String" />
+		<column name="serviceActors" type="String" />
+		<column name="serviceResults" type="String"/>
+		<column name="serviceRecords" type="String" />
+		<column name="serviceFee" type="String" />
+		<column name="serviceInstructions" type="String"/>
+		<column name="administrationCode" type="String" />
+		<column name="administrationIndex" type="String" />
+		<column name="domainCode" type="String" />
+		<column name="domainIndex" type="String" />
+		<column name="activeStatus" type="int" />
+		<column name="hasTemplateFiles" type="int" />
+		<column name="onlineUrl" type="String" />
+
+		<!-- Order -->
+		<order by="asc">
+			<order-column name="serviceName" />
+		</order>
+
+		<!-- Finder methods -->
+		<finder name="GroupId" return-type="Collection">
+			<finder-column name="groupId" />
+		</finder>
+		
+		<finder name="G_AC_S" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="administrationCode"/>
+			<finder-column name="activeStatus"/>
+		</finder>
+		
+		<finder name="G_DC_S" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="domainCode"/>
+			<finder-column name="activeStatus"/>
+		</finder>
+		<reference package-path="com.liferay.portlet.asset" entity="AssetEntry" />
+	</entity>
+
+	<entity name="TemplateFile" local-service="true" remote-service="true"
+		table="opencps_templatefile">
+
+		<!-- PK fields -->
+
+		<column name="templatefileId" type="long" primary="true" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="groupId" type="long" />
+		<column name="userId" type="long" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="fileName" type="String" />
+		<column name="fileNo" type="String" />
+		<column name="fileEntryId" type="long" />
+		
+		<!-- Finder methods -->
+		<finder name="G_F_NAME" return-type="TemplateFile">
+			<finder-column name="groupId" />
+			<finder-column name="fileName"/>
+		</finder>
+
+		<finder name="G_F_NO" return-type="TemplateFile">
+			<finder-column name="groupId" />
+			<finder-column name="fileNo"/>
+		</finder>
+		
+		<finder name="G_F_N" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="fileName" comparator="LIKE"/>
+		</finder>
+		
+		<!-- Order -->
+		<reference package-path="com.liferay.portlet.asset" entity="AssetEntry" />
+		<reference package-path="com.liferay.portlet.documentlibrary" entity="DLFileEntry" />
+		<reference package-path="com.liferay.portlet.documentlibrary" entity="DLApp" />
+	</entity>
+
+	<entity name="ServiceFileTemplate" local-service="true" remote-service="true"
+		table="opencps_service_templatefile">
+
+		<!-- PK fields -->
+
+		<column name="serviceinfoId" type="long" primary="true" />
+		<column name="templatefileId" type="long" primary="true" />
+
+
+		<!-- Finder methods -->
+		<finder name="ServiceinfoId" return-type="Collection">
+			<finder-column name="serviceinfoId" />
+		</finder>
+
+		<finder name="TemplatefileId" return-type="Collection">
+			<finder-column name="templatefileId" />
+		</finder>
+
+	</entity>
+
+	<exceptions>
+		<exception>EmptyServiceContent</exception>
+		<exception>EmptyFileNo</exception>
+		<exception>OutOfLengthFileNo</exception>
+		<exception>DuplicateFileNo</exception>
+		<exception>DuplicateFileName</exception>
+		<exception>IOFileUpload</exception>
+		<exception>DuplicateServiceName</exception>
+		<exception>OutOfLengthServiceContent</exception>
+	</exceptions>
+
+</service-builder>

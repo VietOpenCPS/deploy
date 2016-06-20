@@ -1,0 +1,62 @@
+<html>
+<head>
+    <title>Iframe Client</title>
+    
+    <script src="../config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="2";</script>
+    <script src="../util/loadHub.js"></script>
+    
+    <script src="../util/test_hub.js"></script>
+    <script src="../util/testHelper.js"></script>
+
+    <script type="text/javascript">
+        var hubClient;
+        
+        function createIframeHubClient( params ) {
+            return new OpenAjax.hub.IframeHubClient( params );
+        }
+        
+        function init()
+        {
+            new TestHubClient( "iframe", function( test ) {
+
+                // test with missing "params" param
+                testHelper.assertErrorMsg(
+                    OpenAjax.hub.Error.BadParameters,                           // expected error msg
+                    window,                                                     // scope
+                    "createIframeHubClient",                                    // function name
+                    null,                                                       // args
+                    "missing 'params' param",                                   // hint
+                    test                                                        // test harness
+                );
+
+                // test with missing "params.HubClient" param
+                testHelper.assertErrorMsg(
+                    OpenAjax.hub.Error.BadParameters,                           // expected error msg
+                    window,                                                     // scope
+                    "createIframeHubClient",                                    // function name
+                    [ {} ],                                                     // args
+                    "missing 'params.HubClient' param",                         // hint
+                    test                                                        // test harness
+                );
+                
+                // test with missing "params.HubClient.onSecurityAlert" param
+                testHelper.assertErrorMsg(
+                    OpenAjax.hub.Error.BadParameters,                           // expected error msg
+                    window,                                                     // scope
+                    "createIframeHubClient",                                    // function name
+                    [ { HubClient: {} } ],                                      // args
+                    "missing 'params.HubClient.onSecurityAlert' param",         // hint
+                    test                                                        // test harness
+                );
+                
+                test.callback( true );
+                
+            });
+        }
+    </script>
+</head>
+
+<body onload="init();">
+</body>
+</html>

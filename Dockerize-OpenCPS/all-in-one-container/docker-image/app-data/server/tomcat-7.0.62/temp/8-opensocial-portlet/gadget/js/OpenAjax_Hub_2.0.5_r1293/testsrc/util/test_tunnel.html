@@ -1,0 +1,88 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!--
+
+        Copyright 2006-2009 OpenAjax Alliance
+
+        Licensed under the Apache License, Version 2.0 (the "License"); 
+        you may not use this file except in compliance with the License. 
+        You may obtain a copy of the License at
+        
+                http://www.apache.org/licenses/LICENSE-2.0
+
+        Unless required by applicable law or agreed to in writing, software 
+        distributed under the License is distributed on an "AS IS" BASIS, 
+        WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
+        See the License for the specific language governing permissions and 
+        limitations under the License.
+-->
+
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Iframe Client</title>
+
+    <script type="text/javascript">loadHub_dirDepth="2";</script>
+    <script type="text/javascript" src="loadHub.js"></script>
+    
+    <script type="text/javascript">
+        var hubClient = null;
+        var sid;
+        
+        function init()
+        {
+            if ( window.parent.parent.OpenAjax.htest.testManager ) {
+                sid = window.parent.parent.OpenAjax.hub.subscribe( "control.manager", receiveControlMsg );
+            }
+
+            hubClient = new OpenAjax.hub.IframeHubClient({
+                  HubClient: {
+                      onSecurityAlert: onHubClientSecurityAlert
+//                     , log: function( msg ) {
+//                         console.log( "TestTunnelClient: " + msg );
+//                     }
+                  }
+            });
+            hubClient.connect( onHubClientConnect );
+        }
+
+        function onHubClientConnect( client, success, error )
+        {
+            if ( ! success ) {
+                return;
+            }
+            
+            hubClient.subscribe( "msg", receiveMsg );
+            hubClient.subscribe( "log", logMsg );
+        }
+
+        function onHubClientSecurityAlert( source, alertType ) {
+            alert( "!! security alert from " + source.getClientID() );
+        }
+        
+        function receiveMsg( topic, data )
+        {
+            window.parent.parent.OpenAjax.hub.publish( "control.client", data );
+        }
+
+        function logMsg( topic, data )
+        {
+            window.parent.parent.OpenAjax.hub.publish( "control.client.log", data );
+        }
+
+        function receiveControlMsg( topic, data )
+        {
+            if ( data == "__cleanup" ) {
+                try {
+                    window.parent.parent.OpenAjax.hub.unsubscribe( sid );
+                } catch(e) {}
+                return;
+            }
+            
+            hubClient.publish( "control.manager", data );
+        }
+    </script>
+</head>
+
+<body onload="init();">
+</body>
+</html>

@@ -1,0 +1,26 @@
+#
+# Liferay default account:
+# - username: test@liferay.com
+# - password: test
+#
+# syntax: https://hub.docker.com/u/opencps/ 
+#
+
+version: "2"
+
+services:
+    liferay:
+        image: opencps/liferay-all-in-one-container
+        ports:
+          - "8080:8080"
+          - "3306:3306"
+        volumes:
+          - ./mariadb-data/:/var/lib/mysql/
+          - ./mariadb-init-data/:/docker-entrypoint-initdb.d/
+          #- ./app-data/:/server/
+          - ./mariadb-mycnf/my.cnf:/etc/my.cnf
+        networks:
+          - back-tier
+networks:
+    back-tier:
+

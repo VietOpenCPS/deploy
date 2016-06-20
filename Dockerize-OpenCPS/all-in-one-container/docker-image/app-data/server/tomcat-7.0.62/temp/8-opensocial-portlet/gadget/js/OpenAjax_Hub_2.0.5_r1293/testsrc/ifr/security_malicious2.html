@@ -1,0 +1,76 @@
+<html>
+<head>
+    <title>Malicious Client</title>
+    
+    <script src="../config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="2";</script>
+    <script src="../util/loadHub.js"></script>
+
+    <script src="../util/test_hub.js"></script>
+    <script src="../util/testHelper.js"></script>
+
+    <script type="text/javascript">
+        function init()
+        {
+            new TestHubClient( "iframe", function( test ) {
+                
+                hubClient = new OpenAjax.hub.IframeHubClient({
+                        HubClient: {
+                            onSecurityAlert: function() {},
+                            log: test.log
+                        }
+                });
+                hubClient.connect();
+                
+                setTimeout(
+                    function() {
+                        /*** postMessage ***/
+                        var frames = window.parent.frames;
+                        for ( var i = 0; i < frames.length; i++ ) {
+                            if ( window.postMessage ) {
+                                var msg = JSON.stringify({
+                                    m: "pub",
+                                    i: "forged_msg_client2",
+                                    t: (0x7fffffff * Math.random()) | 0,
+                                    p: {    t: "test.forged_msg",
+                                            d: "I'm bad!",
+                                            s: 0 }
+                                });
+                                frames[i].postMessage( msg, "*" );
+                            }
+                        }
+                    
+                        /*** FIM ***/
+                        try {
+                            var frame = window.parent.frames[0];
+                            if ( frame.location == window.location ) {
+                                test.log( "window.parent.frames[0] is this same frame, not our sibling" );
+                            }
+                        
+                            // dummy publish event
+                            var config = OpenAjax.gadgets.util.getUrlParameters().config;
+                            var url = COMPONENT1_DOMAIN + HUB20_PATH + "/testsrc/ifr/security_forged_msg2.html?config=" + config + "#403B66zK5r8bwuX102y=dis&t=topic1&h=%7B%22s%22%3A%5B%220%22%5D%2C%22f%22%3A%22S%22%7D&p=message";
+                			frame.location.replace(url);
+                		} catch( e ) {
+                		    // browser doesn't allow an iframe to change its
+                		    // siblings location
+                		    test.callback( true, "malicious_client1" );
+                		}
+                		
+                		// Some browsers (i.e. Safari) will not throw
+                		// an error, even if the location change is
+                		// not allowed.  So notify the test that the
+                		// forged message was attempted.
+                		test.callback( true, "malicious_client2" );
+                    },
+                    2000
+                );
+                
+            });
+        }
+    </script>
+</head>
+
+<body onload="init();">
+</body>
+</html>

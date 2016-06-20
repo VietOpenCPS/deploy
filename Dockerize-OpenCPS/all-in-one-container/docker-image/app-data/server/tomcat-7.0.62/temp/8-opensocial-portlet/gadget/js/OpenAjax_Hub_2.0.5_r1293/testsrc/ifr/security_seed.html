@@ -1,0 +1,50 @@
+<html>
+<head>
+    <title>Iframe Client</title>
+    
+    <script src="../config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="2";</script>
+    <script src="../util/loadHub.js"></script>
+    
+    <script src="../util/test_hub.js"></script>
+    <script src="../util/testHelper.js"></script>
+    
+    <script type="text/javascript">
+        function init()
+        {
+            new TestHubClient( "iframe", function( test ) {
+                
+                var params = {
+                        HubClient: {
+                            onSecurityAlert: function() {},
+                            log: test.log
+                        }
+                };
+                if ( ! window.postMessage ) {  // if FIM impl
+                    params.IframeHubClient = {
+                        seed: function() {
+                            test.sendMsg( "hubclient_seeded" );
+                            return "bar";
+                        }
+                    }
+                }
+                
+                var hubClient = new OpenAjax.hub.IframeHubClient( params );
+                hubClient.connect();
+                
+                if ( window.postMessage ) {
+                    var token = OpenAjax.gadgets.util.getUrlParameters().oaht;
+                    test.sendMsg({
+                        id: hubClient.getClientID(),
+                        length: token.length
+                    });
+                }
+                
+            });
+        }
+    </script>
+</head>
+
+<body onload="init();">
+</body>
+</html>

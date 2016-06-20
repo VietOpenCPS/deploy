@@ -1,0 +1,5 @@
+
+					database-type=com.liferay.portlet.wiki.engines.mediawiki.LiferayDataHandler
+					props-initialized=true
+					search-engine=com.liferay.portlet.wiki.engines.mediawiki.LiferaySearchEngine
+				

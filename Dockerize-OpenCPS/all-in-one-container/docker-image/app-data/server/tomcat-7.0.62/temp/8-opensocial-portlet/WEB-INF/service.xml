@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 6.2.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_6_2_0.dtd">
+
+<service-builder package-path="com.liferay.opensocial">
+	<namespace>OpenSocial</namespace>
+	<entity name="Gadget" uuid="true" local-service="true" remote-service="true">
+		<!-- PK fields -->
+		<column name="gadgetId" type="long" primary="true"></column>
+		<!-- Audit fields -->
+		<column name="companyId" type="long"></column>
+		<column name="createDate" type="Date"></column>
+		<column name="modifiedDate" type="Date"></column>
+		<!-- Other fields -->
+		<column name="name" type="String"></column>
+		<column name="url" type="String"></column>
+		<column name="portletCategoryNames" type="String"></column>
+		<!-- Order -->
+		<order by="asc">
+			<order-column name="name"></order-column>
+		</order>
+		<!-- Finder methods -->
+		<finder name="CompanyId" return-type="Collection">
+			<finder-column name="companyId"></finder-column>
+		</finder>
+		<finder name="C_U" return-type="Gadget" unique="true">
+			<finder-column name="companyId"></finder-column>
+			<finder-column name="url"></finder-column>
+		</finder>
+	</entity>
+	<entity name="OAuthConsumer" local-service="true" remote-service="false">
+		<!-- PK fields -->
+		<column name="oAuthConsumerId" type="long" primary="true"></column>
+		<!-- Audit fields -->
+		<column name="companyId" type="long"></column>
+		<column name="createDate" type="Date"></column>
+		<column name="modifiedDate" type="Date"></column>
+		<!-- Other fields -->
+		<column name="gadgetKey" type="String"></column>
+		<column name="serviceName" type="String"></column>
+		<column name="consumerKey" type="String"></column>
+		<column name="consumerSecret" type="String"></column>
+		<column name="keyType" type="String"></column>
+		<!-- Order -->
+		<order by="asc">
+			<order-column name="serviceName"></order-column>
+		</order>
+		<!-- Finder methods -->
+		<finder name="GadgetKey" return-type="Collection">
+			<finder-column name="gadgetKey"></finder-column>
+		</finder>
+		<finder name="G_S" return-type="OAuthConsumer">
+			<finder-column name="gadgetKey"></finder-column>
+			<finder-column name="serviceName"></finder-column>
+		</finder>
+	</entity>
+	<entity name="OAuthToken" local-service="true" remote-service="false">
+		<!-- PK fields -->
+		<column name="oAuthTokenId" type="long" primary="true"></column>
+		<!-- Audit fields -->
+		<column name="companyId" type="long"></column>
+		<column name="userId" type="long"></column>
+		<column name="userName" type="String"></column>
+		<column name="createDate" type="Date"></column>
+		<column name="modifiedDate" type="Date"></column>
+		<!-- Other fields -->
+		<column name="gadgetKey" type="String"></column>
+		<column name="serviceName" type="String"></column>
+		<column name="moduleId" type="long"></column>
+		<column name="accessToken" type="String"></column>
+		<column name="tokenName" type="String"></column>
+		<column name="tokenSecret" type="String"></column>
+		<column name="sessionHandle" type="String"></column>
+		<column name="expiration" type="long"></column>
+		<!-- Finder methods -->
+		<finder name="G_S" return-type="Collection">
+			<finder-column name="gadgetKey"></finder-column>
+			<finder-column name="serviceName"></finder-column>
+		</finder>
+		<finder name="U_G_S_M_T" return-type="OAuthToken">
+			<finder-column name="userId"></finder-column>
+			<finder-column name="gadgetKey"></finder-column>
+			<finder-column name="serviceName"></finder-column>
+			<finder-column name="moduleId"></finder-column>
+			<finder-column name="tokenName"></finder-column>
+		</finder>
+	</entity>
+	<exceptions>
+		<exception>DuplicateGadgetURL</exception>
+		<exception>GadgetPortletCategoryNames</exception>
+		<exception>GadgetURL</exception>
+	</exceptions>
+</service-builder>

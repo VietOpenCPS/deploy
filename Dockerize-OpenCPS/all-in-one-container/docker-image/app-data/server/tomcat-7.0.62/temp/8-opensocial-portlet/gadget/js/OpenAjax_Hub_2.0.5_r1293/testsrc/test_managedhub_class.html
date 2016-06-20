@@ -1,0 +1,1025 @@
+<html>
+<head>
+    <title> Container Interface Tests </title>
+    
+    <script src="../dojo/dojo/dojo.js" djConfig="isDebug: true"></script>
+    
+    <script src="config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="1";</script>
+    <script src="util/loadHub.js"></script>
+    <script src="util/test_hub.js"></script>
+    <script src="util/testHelper.js"></script>
+    
+    <script src="ifr/test_iframe_container.js"></script>
+    <script src="inline/test_inline_container.js"></script>
+    <script src="manager/test_manager_container.js"></script>
+
+    <script>
+        dojo.require( "doh.runner" );
+        dojo.addOnLoad( function() {
+            doh.run();
+        });
+        
+        doh.registerGroup( "ManagedHub tests",
+            // tests
+            [
+                {
+                    name: "ManagedHub constructor OpenAjax.hub.Error.BadParameters",
+                    description: "Test ManagedHub constructor for OpenAjax.hub.Error.BadParameters errors",
+                    _createManagedHub: function( params )
+                    {
+                        return new OpenAjax.hub.ManagedHub( params );
+                    },
+                    runTest: function()
+                    {
+                        // test with missing "params" param
+                        testHelper.assertErrorMsg(
+                            OpenAjax.hub.Error.BadParameters,                   // expected error msg
+                            this,                                               // scope
+                            "_createManagedHub",                                // function name
+                            null,                                               // args
+                            "missing 'params' param"
+                        );
+                        
+                        // test with missing "params.onSubscribe" param
+                        testHelper.assertErrorMsg(
+                            OpenAjax.hub.Error.BadParameters,                   // expected error msg
+                            this,                                               // scope
+                            "_createManagedHub",                                // function name
+                            [ { onPublish: function() {} } ],                   // args
+                            "missing 'params.onSubscribe' param"
+                        );
+                        
+                        // test with missing "params.onPublish" param
+                        testHelper.assertErrorMsg(
+                            OpenAjax.hub.Error.BadParameters,                   // expected error msg
+                            this,                                               // scope
+                            "_createManagedHub",                                // function name
+                            [ { onSubscribe: function() {} } ],                 // args
+                            "missing 'params.onPublish' param"
+                        );
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+
+                {
+                    name: "ManagedHub constructor onSubscribe callback",
+                    description: "Test the onSubscribe callback and scope params for the ManagedHub constructor",
+                    timeout: 5000,
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+                        var that = this;
+                        
+                        function subscribeCB( topic, container ) {
+                            that.d.getTestErrback( function() {
+                                switch( topic ) {
+                                    case "test.inline":
+                                        doh.assertTrue( container == client1 || container == client3 );
+                                        break;
+                                    case "test.iframe":
+                                        doh.assertEqual( client2, container );
+                                        break;
+                                    case "test.manager":
+                                        doh.assertEqual( null, container );
+                                        break;
+                                }
+                            
+                                if ( container == client1 || container == client2 ) {
+                                    doh.assertEqual( window, this );
+                                } else {
+                                    doh.assertEqual( that, this );
+                                }
+                                
+                                var clientID = container ? container.getClientID() : "onsub_client4";     // 'client4' is the managedhub
+                                that._subscribed( clientID );
+                            }, this )();
+                            return true;
+                        }
+                        
+                        // test with no scope (should default to "window")
+                        var hub1 = new OpenAjax.hub.ManagedHub({
+                            onSubscribe: subscribeCB,
+                            onPublish: function() { return true; },
+                            log: function( msg ) {
+                                console.log( msg );
+                            }
+                        });
+                        
+                        var client1 = TestInlineContainer.createContainerForTest(
+                            "managedhub_onsubscribe",
+                            hub1,
+                            "onsub_client1",
+                            {   Container: {
+                                    onSecurityAlert: function() {}
+                                }
+                            }
+                        );
+                        var client2 = TestIframeContainer.createContainerForTest(
+                            "managedhub_onsubscribe",
+                            hub1,
+                            "onsub_client2",
+                            {   Container: {
+                                    onSecurityAlert: function() {}
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+                        
+                        // test with scope set to "this"
+                        var hub2 = new OpenAjax.hub.ManagedHub({
+                            onSubscribe: subscribeCB,
+                            onPublish: function() { return true; },
+                            scope: this,
+                            log: function( msg ) {
+                                console.log( msg );
+                            }
+                        });
+                        
+                        var client3 = TestInlineContainer.createContainerForTest(
+                            "managedhub_onsubscribe",
+                            hub2,
+                            "onsub_client3",
+                            {   Container: {
+                                    onSecurityAlert: function() {}
+                                }
+                            }
+                        );
+                        var client4 = TestManagerContainer.createContainerForTest(
+                            "managedhub_onsubscribe",
+                            hub2,
+                            "onsub_client4"
+                        );
+                        
+                        return this.d;
+                    },
+                    _subscribed: function( clientID )
+                    {
+                        this[ clientID + "_subscribed" ] = true;
+                        if ( this.onsub_client1_subscribed && this.onsub_client2_subscribed &&
+                                this.onsub_client3_subscribed && this.onsub_client4_subscribed ) {
+                            this.d.callback( true );    // test succeeded
+                        }
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+
+                {
+                    name: "ManagedHub constructor onPublish callback",
+                    description: "Test the onPublish callback and scope params for the ManagedHub constructor",
+                    timeout: 5000,
+                    setUp: function()
+                    {
+                        this.testManager = new TestHubManager();
+                    },
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+                        var that = this;
+                        
+                        function subscribeCB( topic, container ) {
+                            // make sure all clients are subscribed first, then
+                            // notify them so they can publish
+                            var id = container ? container.getClientID() : "onpub_client4";
+                            that[ id + "_subscribed" ] = true;
+                            if ( that.onpub_client1_subscribed &&
+                                    that.onpub_client2_subscribed &&
+                                    that.onpub_client3_subscribed &&
+                                    that.onpub_client4_subscribed )
+                            {
+                                setTimeout( function() {
+                                    that.testManager.sendMsg( "publish" );
+                                }, 0 );
+                            }
+                            return true;
+                        }
+                        function publishCB( topic, data, pcont, scont ) {
+                            that.d.getTestErrback( function() {
+                                // when ManagedHub publishes (i.e. client4), the container obj is null
+                                var pid = pcont ? pcont.getClientID() : "onpub_client4";
+                                var sid = scont ? scont.getClientID() : "onpub_client4";
+                                
+                                doh.assertTrue( topic == "test.first" || topic == "test.second" );
+                                switch( topic ) {
+                                    case "test.second":
+                                        doh.assertEqual( "hello", data );
+                                        doh.assertTrue(( pid == "onpub_client1" && sid == "onpub_client2" ) ||
+                                                       ( pid == "onpub_client3" && sid == "onpub_client4" ));
+                                        break;
+                                    case "test.first":
+                                        doh.assertEqual( "goodbye", data );
+                                        doh.assertTrue(( pid == "onpub_client2" && sid == "onpub_client1") ||
+                                                       ( pid == "onpub_client4" && sid == "onpub_client3" ));
+                                        break;
+                                }
+                            
+                                if ( pcont == client1 || pcont == client2 ) {
+                                    doh.assertEqual( window, this );
+                                } else {
+                                    doh.assertEqual( that, this );
+                                }
+                                
+                                that._published( pid );
+                            }, this )();
+                            return true;
+                        }
+                        
+                        // test with no scope (should default to "window")
+                        var hub1 = new OpenAjax.hub.ManagedHub({
+                            onSubscribe: subscribeCB,
+                            onPublish: publishCB,
+                            log: function( msg ) {
+                                console.log( msg );
+                            }
+                        });
+                        
+                        var client1 = TestInlineContainer.createContainerForTest(
+                            "managedhub_onpublish",
+                            hub1,
+                            "onpub_client1",
+                            {   Container: {
+                                    onSecurityAlert: function() {}
+                                }
+                            }
+                        );
+                        var client2 = TestIframeContainer.createContainerForTest(
+                            "managedhub_onpublish",
+                            hub1,
+                            "onpub_client2",
+                            {   Container: {
+                                    onSecurityAlert: function() {}
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+                        
+                        // test with scope set to "this"
+                        var hub2 = new OpenAjax.hub.ManagedHub({
+                            onSubscribe: subscribeCB,
+                            onPublish: publishCB,
+                            scope: this,
+                            log: function( msg ) {
+                                console.log( msg );
+                            }
+                        });
+                        
+                        var client3 = TestInlineContainer.createContainerForTest(
+                            "managedhub_onpublish",
+                            hub2,
+                            "onpub_client3",
+                            {   Container: {
+                                    onSecurityAlert: function() {}
+                                }
+                            }
+                        );
+                        var client4 = TestManagerContainer.createContainerForTest(
+                            "managedhub_onpublish",
+                            hub2,
+                            "onpub_client4"
+                        );
+                        
+                        return this.d;
+                    },
+                    tearDown: function()
+                    {
+                        this.testManager.cleanup();
+                    },
+                    _published: function( clientID )
+                    {
+                        this[ clientID + "_published" ] = true;
+                        if ( this.onpub_client1_published && this.onpub_client2_published &&
+                                this.onpub_client3_published && this.onpub_client4_published ) {
+                            this.d.callback( true );    // test succeeded
+                        }
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+
+                {
+                    name: "ManagedHub constructor onUnsubscribe callback",
+                    description: "Test the onSubscribe callback and scope params for the ManagedHub constructor",
+                    timeout: 5000,
+                    setUp: function()
+                    {
+                        this.testManager = new TestHubManager();
+                    },
+                    runTest: function()
+                    {
+                        this.topics = {};
+                        this.d = new doh.Deferred();
+                        var that = this;
+                        
+                        function subscribeCB( topic, container ) {
+                            var id = container ? container.getClientID() : "unsub_client4";
+                            that.topics[ id ] = topic;
+                            
+                            // make sure all clients are subscribed first, then
+                            // notify them so they can publish
+                            that[ id + "_subscribed" ] = true;
+                            if ( that.unsub_client1_subscribed &&
+                                    that.unsub_client2_subscribed &&
+                                    that.unsub_client3_subscribed &&
+                                    that.unsub_client4_subscribed ) {
+                                setTimeout( function() {
+                                    that.testManager.sendMsg( "unsubscribe" );
+                                }, 0 );
+                            }
+                            
+                            return true;
+                        }
+                        function unsubscribeCB( topic, container ) {
+                            that.d.getTestErrback( function() {
+                                var id = container ? container.getClientID() : "unsub_client4";
+                                doh.assertEqual( that.topics[ id ], topic );
+                                
+                                if ( container == client1 || container == client2 ) {
+                                    doh.assertEqual( window, this );
+                                } else {
+                                    doh.assertEqual( that, this );
+                                }
+                                
+                                that._unsubscribed( id );
+                            }, this )();
+                        }
+                        
+                        // test with no scope (should default to "window")
+                        var hub1 = new OpenAjax.hub.ManagedHub({
+                            onSubscribe: subscribeCB,
+                            onPublish: function() { return true; },
+                            onUnsubscribe: unsubscribeCB,
+                            log: function( msg ) {
+                                console.log( msg );
+                            }
+                        });
+                        
+                        var client1 = TestInlineContainer.createContainerForTest(
+                            "managedhub_onunsubscribe",
+                            hub1,
+                            "unsub_client1",
+                            {   Container: {
+                                    onSecurityAlert: function() {}
+                                }
+                            }
+                        );
+                        var client2 = TestIframeContainer.createContainerForTest(
+                            "managedhub_onunsubscribe",
+                            hub1,
+                            "unsub_client2",
+                            {   Container: {
+                                    onSecurityAlert: function() {}
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+                        
+                        // test with scope set to "this"
+                        var hub2 = new OpenAjax.hub.ManagedHub({
+                            onSubscribe: subscribeCB,
+                            onPublish: function() { return true; },
+                            onUnsubscribe: unsubscribeCB,
+                            scope: this,
+                            log: function( msg ) {
+                                console.log( msg );
+                            }
+                        });
+                        
+                        var client3 = TestInlineContainer.createContainerForTest(
+                            "managedhub_onunsubscribe",
+                            hub2,
+                            "unsub_client3",
+                            {   Container: {
+                                    onSecurityAlert: function() {}
+                                }
+                            }
+                        );
+                        var client4 = TestManagerContainer.createContainerForTest(
+                            "managedhub_onunsubscribe",
+                            hub2,
+                            "unsub_client4"
+                        );
+                        
+                        return this.d;
+                    },
+                    tearDown: function()
+                    {
+                        this.testManager.cleanup();
+                    },
+                    _unsubscribed: function( clientID )
+                    {
+                        this.d.getTestErrback( function() {
+                            doh.assertFalse( this[ clientID + "_unsubscribed" ] );
+                        }, this )();
+                        
+                        this[ clientID + "_unsubscribed" ] = true;
+                        if ( this.unsub_client1_unsubscribed && this.unsub_client2_unsubscribed &&
+                                this.unsub_client3_unsubscribed && this.unsub_client4_unsubscribed ) {
+                            this.d.callback( true );    // test succeeded
+                        }
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "ManagedHub constructor onSubscribe callback return value",
+                    description: "Test the return value for the onSubscribe callback",
+                    timeout: 5000,
+                    setUp: function()
+                    {
+                        this.testManager = new TestHubManager();
+                    },
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+                        
+                        function subscribeCB( topic, container ) {
+                            // make sure all clients have tried to subscribe
+                            // first, then notify them so they can publish
+                            var id = container ? container.getClientID() : "onsub_r_client3";
+                            this[ id + "_subscribed" ] = true;
+                            if ( this.onsub_r_client1_subscribed &&
+                                    this.onsub_r_client2_subscribed &&
+                                    this.onsub_r_client3_subscribed ) {
+                                var that = this;
+                                setTimeout( function() {
+                                    that.testManager.sendMsg( "publish" );
+                                }, 0 );
+                            }
+
+                            // allow all containers but client1 to subscribe
+                            if ( container == client1 ) {
+                                return false;
+                            }
+                            return true;
+                        }
+                        function publishCB( topic, data, pcont, scont ) {
+                            this.d.getTestErrback( function() {
+                                // when ManagedHub publishes (i.e. client3), the container obj is null
+                                var pid = pcont ? pcont.getClientID() : "onsub_r_client3";
+                                var sid = scont ? scont.getClientID() : "onsub_r_client3";
+                                
+                                doh.assertTrue( topic == "test.topic" );
+                                
+                                // the subscribing container should never be client1
+                                doh.assertNotEqual( client1, scont );
+                                doh.assertTrue( sid == "onsub_r_client2" || sid == "onsub_r_client3" );
+                                
+                                this._published( pid );
+                            }, this )();
+                            return true;
+                        }
+                        
+                        var hub = new OpenAjax.hub.ManagedHub({
+                            onSubscribe: subscribeCB,
+                            onPublish: publishCB,
+                            scope: this,
+                            log: function( msg ) {
+                                console.log( msg );
+                            }
+                        });
+                        
+                        var client1 = TestInlineContainer.createContainerForTest(
+                            "managedhub_onsubscribe_returnvalue",
+                            hub,
+                            "onsub_r_client1",
+                            {   Container: {
+                                    onSecurityAlert: function() {}
+                                }
+                            }
+                        );
+                        var client2 = TestIframeContainer.createContainerForTest(
+                            "managedhub_onsubscribe_returnvalue",
+                            hub,
+                            "onsub_r_client2",
+                            {   Container: {
+                                    onSecurityAlert: function() {}
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+                        var client3 = TestManagerContainer.createContainerForTest(
+                            "managedhub_onsubscribe_returnvalue",
+                            hub,
+                            "onsub_r_client3"
+                        );
+                        
+                        return this.d;
+                    },
+                    tearDown: function()
+                    {
+                        this.testManager.cleanup();
+                    },
+                    _published: function( clientID )
+                    {
+                        this[ clientID + "_published" ] = true;
+                        if ( this.onsub_r_client1_published && this.onsub_r_client2_published &&
+                                this.onsub_r_client3_published ) {
+                            this.d.callback( true );    // test succeeded
+                        }
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "ManagedHub constructor onPublish callback return value",
+                    description: "Test the return value for the onPublish callback",
+                    timeout: 5000,
+                    setUp: function()
+                    {
+                        // listen for msg from clients
+                        var that = this;
+                        this.testManager = new TestHubManager();
+                        this.testManager.onMsg = function( msg ) {
+                            that.d.getTestErrback( function() {
+                                // msg => "<pid>:<sid>"
+                                var parts = msg.split( ":" );
+                                doh.assertTrue( parts[0] == "inline" ||
+                                                parts[0] == "iframe" ||
+                                                parts[0] == "manager" );
+                                
+                                switch( parts[0] ) {
+                                    case "inline":
+                                        doh.assertEqual( "iframe", parts[1] );
+                                        break;
+                                    case "iframe":
+                                        doh.assertEqual( "manager", parts[1] );
+                                        break;
+                                    case "manager":
+                                        doh.assertEqual( "inline", parts[1] );
+                                        break;
+                                }
+                                
+                                doh.assertFalse( that[ parts[0] + "_published" ] );
+                                that[ parts[0] + "_published" ] = true;
+                                if ( that.inline_published && that.iframe_published &&
+                                        that.manager_published ) {
+                                    that.d.callback( true );   // test succeeded
+                                }
+                            })();
+                        };
+                    },
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+                        
+                        function subscribeCB( topic, container ) {
+                            // make sure all clients have tried to subscribe
+                            // first, then notify them so they can publish
+                            var id = container ? container.getClientID() : "onpub_r_client3";
+                            this[ id + "_subscribed" ] = true;
+                            if ( this.onpub_r_client1_subscribed &&
+                                    this.onpub_r_client2_subscribed &&
+                                    this.onpub_r_client3_subscribed ) {
+                                var that = this;
+                                setTimeout( function() {
+                                    that.testManager.sendMsg( "publish" );
+                                }, 0 );
+                            }
+                            return true;
+                        }
+                        function publishCB( topic, data, pcont, scont ) {
+                            // when ManagedHub publishes (i.e. client3), the container obj is null
+                            var pid = pcont ? pcont.getClientID() : "onpub_r_client3";
+                            var sid = scont ? scont.getClientID() : "onpub_r_client3";
+                            
+                            // allow client1 to publish to client2 and
+                            //       client2 to publish to client3 and
+                            //       client3 to publish to client1
+                            var allow = false;
+                            switch( pid ) {
+                                case "onpub_r_client1":
+                                    allow = sid == "onpub_r_client2";
+                                    break;
+                                case "onpub_r_client2":
+                                    allow = sid == "onpub_r_client3";
+                                    break;
+                                case "onpub_r_client3":
+                                    allow = sid == "onpub_r_client1";
+                                    break;
+                            }
+                            return allow;
+                        }
+                        
+                        var hub = new OpenAjax.hub.ManagedHub({
+                            onSubscribe: subscribeCB,
+                            onPublish: publishCB,
+                            scope: this,
+                            log: function( msg ) {
+                                console.log( msg );
+                            }
+                        });
+                        
+                        var client1 = TestInlineContainer.createContainerForTest(
+                            "managedhub_onpublish_returnvalue",
+                            hub,
+                            "onpub_r_client1",
+                            {   Container: {
+                                    onSecurityAlert: function() {}
+                                }
+                            }
+                        );
+                        var client2 = TestIframeContainer.createContainerForTest(
+                            "managedhub_onpublish_returnvalue",
+                            hub,
+                            "onpub_r_client2",
+                            {   Container: {
+                                    onSecurityAlert: function() {}
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+                        var client3 = TestManagerContainer.createContainerForTest(
+                            "managedhub_onpublish_returnvalue",
+                            hub,
+                            "onpub_r_client3"
+                        );
+                        
+                        return this.d;
+                    },
+                    tearDown: function()
+                    {
+                        this.testManager.cleanup();
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+
+                {
+                    name: "ManagedHub.getContainer & listContainers",
+                    description: "Test the getContainer and listContainers functions on the ManagedHub class",
+                    setUp: function()
+                    {
+                        this.hub = new OpenAjax.hub.ManagedHub({
+                            onSubscribe: function() { return true; },
+                            onPublish: function() { return true; },
+                            log: function( msg ) {
+                                console.log( msg );
+                            }
+                        });
+                        
+                        this.client1 = TestInlineContainer.createContainerForTest(
+                            "managedhub_onsubscribe",
+                            this.hub,
+                            "getctn_client1",
+                            {   Container: {
+                                    onSecurityAlert: function() {}
+                                }
+                            }
+                        );
+                        this.client2 = TestIframeContainer.createContainerForTest(
+                            "managedhub_onsubscribe",
+                            this.hub,
+                            "getctn_client2",
+                            {   Container: {
+                                    onSecurityAlert: function() {}
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+                    },
+                    runTest: function()
+                    {
+                        doh.assertEqual( this.client1, this.hub.getContainer( "getctn_client1" ) );
+                        doh.assertEqual( this.client2, this.hub.getContainer( "getctn_client2" ) );
+                        doh.assertEqual( null, this.hub.getContainer( "getctn_client3" ) );
+                        doh.assertEqual( null, this.hub.getContainer( "XYZabc" ) );
+                        
+                        var ctns = this.hub.listContainers();
+                        doh.assertEqual( 2, ctns.length );
+                        doh.assertTrue(( ctns[0] === this.client1 && ctns[1] === this.client2 ) ||
+                                       ( ctns[0] === this.client2 && ctns[1] === this.client1 ));
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "ManagedHub.addContainer & removeContainer",
+                    description: "Test the addContainer and removeContainer functions on the ManagedHub class",
+                    setUp: function()
+                    {
+                        this.hub = new OpenAjax.hub.ManagedHub({
+                            onSubscribe: function() { return true; },
+                            onPublish: function() { return true; },
+                            log: function( msg ) {
+                                console.log( msg );
+                            }
+                        });
+                        
+                        this.client1 = TestInlineContainer.createContainerForTest(
+                            "managedhub_onsubscribe",
+                            this.hub,
+                            "addc_client1",
+                            {   Container: {
+                                    onSecurityAlert: function() {}
+                                }
+                            }
+                        );
+                        
+                        this.client2 = TestIframeContainer.createContainerForTest(
+                            "managedhub_onsubscribe",
+                            this.hub,
+                            "addc_client2",
+                            {   Container: {
+                                    onSecurityAlert: function() {}
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+                    },
+                    runTest: function()
+                    {
+                        var that = this;
+                        
+                        doh.assertEqual( this.client1, this.hub.getContainer( "addc_client1" ) );
+                        doh.assertEqual( this.client2, this.hub.getContainer( "addc_client2" ) );
+                        
+                        // test adding a container called "client1" again
+                        testHelper.assertErrorMsg(
+                            OpenAjax.hub.Error.Duplicate,                       // expected error msg
+                            TestIframeContainer,                                // scope
+                            "createContainerForTest",                           // function name
+                            [   "managedhub_onsubscribe",                       // args
+                                that.hub,
+                                "addc_client1",
+                                {   Container: {
+                                        onSecurityAlert: function() {}
+                                    },
+                                    IframeContainer: {
+                                        parent: document.getElementById( "iframe_widget" )
+                                    }
+                                }
+                            ],
+                            "duplicate 'addc_client1' container"
+                        );
+                        
+                        // test removing "addc_client1" container
+                        this.hub.removeContainer( this.client1 );
+                        doh.assertEqual( null, this.hub.getContainer( "addc_client1" ) );
+                        
+                        // test removing container that is not attached to this hub
+                        testHelper.assertErrorMsg(
+                            OpenAjax.hub.Error.NoContainer,                     // expected error msg
+                            that.hub,                                           // scope
+                            "removeContainer",                                  // function name
+                            [ this.client1 ],                                   // args
+                            "trying to remove container that is not attached to hub"
+                        );
+                        
+                        // test removing "addc_client2" container
+                        this.hub.removeContainer( this.client2 );
+                        doh.assertEqual( null, this.hub.getContainer( "addc_client2" ) );
+                        doh.assertEqual( 0, this.hub.listContainers().length );
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "ManagedHub.getScope",
+                    description: "Test Hub.getScope() function on the ManagedHub class",
+                    setUp: function()
+                    {
+                        this.hub1 = new OpenAjax.hub.ManagedHub({
+                            onSubscribe: function() { return true; },
+                            onPublish: function() { return true; },
+                            log: function( msg ) {
+                                console.log( msg );
+                            }
+                        });
+                        this.hub2 = new OpenAjax.hub.ManagedHub({
+                            onSubscribe: function() { return true; },
+                            onPublish: function() { return true; },
+                            scope: this,
+                            log: function( msg ) {
+                                console.log( msg );
+                            }
+                        });
+                    },
+                    runTest: function()
+                    {
+                        doh.assertEqual( window, this.hub1.getScope() );
+                        doh.assertEqual( this, this.hub2.getScope() );
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "ManagedHub.getParameters",
+                    description: "Test Hub.getParameters() function on the ManagedHub class",
+                    setUp: function()
+                    {
+                        this.params = {
+                                onSubscribe: function() { return true; },
+                                onPublish: function() { return true; },
+                                log: function( msg ) {
+                                    console.log( msg );
+                                }
+                        }
+                        this.hub = new OpenAjax.hub.ManagedHub( this.params );
+                    },
+                    runTest: function()
+                    {
+                        doh.assertEqual( this.params, this.hub.getParameters() );
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+                
+                // XXX TODO MH.disconnect tests
+                
+                ////////////////////////////////////////////////////////////////
+
+                {
+                    name: "same id, different hub",
+                    description: "Test that clients with same ID but belonging" +
+                        " to different ManagedHub don't interfer with each other",
+                    timeout: 10000,
+                    setUp: function()
+                    {
+                        this.testManager = new TestHubManager();
+                        this._createHubAlpha();
+                        this._createHubBeta();
+                    },
+                    _createHubAlpha: function()
+                    {
+                        this.hubAlpha = new OpenAjax.hub.ManagedHub({
+                            onSubscribe: function() { return true; },
+                            onPublish: function() { return true; },
+                            log: function( msg ) {
+                                console.log( msg );
+                            }
+                        });
+
+                        var ctns = {};
+                        function onClientConnect( container ) {
+                            doh.debug( "\tcontainer " + container.getClientID() +
+                                    " on hub 'alpha' has connected" );
+                            ctns[ container.getClientID() ] = true;
+                            if ( ctns.client1 && ctns.client2 ) {
+                                this._hubReady( "alpha" );
+                            }
+                        }
+
+                        this.alphaClient1 = TestInlineContainer.createContainerForTest(
+                            "managedhub_sameid1",
+                            this.hubAlpha,
+                            "client1",
+                            {   Container: {
+                                    onConnect: onClientConnect,
+                                    onSecurityAlert: function() {},
+                                    scope: this,
+                                    log: function( msg ) {
+                                            console.log( msg );
+                                        }
+                                }
+                            }
+                        );
+                        this.alphaClient2 = TestIframeContainer.createContainerForTest(
+                            "managedhub_sameid1",
+                            this.hubAlpha,
+                            "client2",
+                            {   Container: {
+                                    onConnect: onClientConnect,
+                                    onSecurityAlert: function() {},
+                                    scope: this,
+                                    log: function( msg ) {
+                                            console.log( msg );
+                                        }
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+                    },
+                    _createHubBeta: function()
+                    {
+                        this.hubBeta = new OpenAjax.hub.ManagedHub({
+                            onSubscribe: function() { return true; },
+                            onPublish: function() { return true; },
+                            log: function( msg ) {
+                                console.log( msg );
+                            }
+                        });
+
+                        var ctns = {};
+                        function onClientConnect( container ) {
+                            doh.debug( "\tcontainer " + container.getClientID() +
+                                    " on hub 'beta' has connected" );
+                            ctns[ container.getClientID() ] = true;
+                            if ( ctns.client1 && ctns.client2 ) {
+                                this._hubReady( "beta" );
+                            }
+                        }
+
+                        this.betaClient1 = TestInlineContainer.createContainerForTest(
+                            "managedhub_sameid2",
+                            this.hubBeta,
+                            "client1",
+                            {   Container: {
+                                    onConnect: onClientConnect,
+                                    onSecurityAlert: function() {},
+                                    scope: this,
+                                    log: function( msg ) {
+                                            console.log( msg );
+                                        }
+                                }
+                            }
+                        );
+                        this.betaClient2 = TestIframeContainer.createContainerForTest(
+                            "managedhub_sameid2",
+                            this.hubBeta,
+                            "client2",
+                            {   Container: {
+                                    onConnect: onClientConnect,
+                                    onSecurityAlert: function() {},
+                                    scope: this,
+                                    log: function( msg ) {
+                                            console.log( msg );
+                                        }
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+                    },
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+                        
+                        // listen for msg from iframe client
+                        var that = this;
+                        this.testManager.onMsg = function( data ) {
+                            var result = data.r;
+                            var msg = data.m;
+                            if ( result ) {
+                                that._completed( msg );
+                            } else {
+                                that.d.errback( msg );
+                            }
+                        };
+                        
+                        return this.d;
+                    },
+                    _hubReady: function( hubName )
+                    {
+                        this[ hubName + "_ready" ] = true;
+                        if ( this.alpha_ready && this.beta_ready ) {
+                            var that = this;
+                            setTimeout(
+                                function() {
+                                    that.testManager.sendMsg( "publish" );
+                                },
+                                500
+                            );
+                        }
+                    },
+                    _completed: function( client )
+                    {
+                        this[ client + "_completed" ] = true;
+                        if ( this.alphaClient1_completed && this.betaClient1_completed ) {
+                             this.d.callback( true ); // test succeeded
+                         }
+                    },
+                    tearDown: function()
+                    {
+                        this.testManager.cleanup();
+                    }
+                }
+            ],
+    
+            // group setup
+            function() {
+            },
+    
+            // group tear down
+            function() {
+            }
+        );
+    </script>
+</head>
+<body>
+    <div id="iframe_widget"></div>
+</body>
+</html>

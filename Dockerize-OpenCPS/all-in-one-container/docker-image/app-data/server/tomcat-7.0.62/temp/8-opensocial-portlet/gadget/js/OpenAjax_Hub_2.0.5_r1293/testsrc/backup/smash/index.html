@@ -1,0 +1,103 @@
+<!-- (C) Copyright IBM Corp. 2007 -->
+
+<html>
+	<head>	
+		<script src="dummyHubSPI.js"></script>
+		<script src="../../smash/json2.js"></script>
+		<script src="../../smash/smash.js"></script>
+                <!-- crypto.js is optional -->
+		<script src="../../smash/crypto.js"></script>
+		<!-- Actual Application -->
+		<script type="text/javascript">
+			function channelListener(connHandle, topic, message) {
+				if (typeof message == "string")			
+					alert("Heard on topic\n\n: "+ topic + "\n\nString Message: " + message);
+				else
+					alert("Heard on topic\n\n: "+ topic + "\n\nJSON Message: " 
+						+ JSON.stringify(message));
+			}
+			function errorCallback(clientName, errormsg) {
+				alert("client: " + clientName + " error message:" + errormsg);
+			}
+			function loadFrame(uri, parentElement) {
+				var iframe = document.createElement("iframe");
+				// set defaults
+				iframe.style.width="100%";
+				iframe.style.height="100%";
+				iframe.style.border="none";
+				iframe.src = uri;
+				parentElement.appendChild(iframe);
+				return iframe;
+			}
+			var iframeC1 = null;
+			var iframeC2 = null;
+			var parentElementC1 = null;
+			var parentElementC2 = null;
+			function init(useCryptoRandom) {
+				smash.configure({tunnelURI: "http://mashup.foo.bar.com/hub11/trunk/providers/smash/tunnel.html"});
+				if (useCryptoRandom) {
+					var seed = "";
+					var cdate;
+					while (seed.length < 12) {
+						// should use a better seed than this
+						cdate = new Date();
+						seed += cdate.getTime();
+					}
+					var prng = smash.crypto.newPRNG(seed);
+					smash.configure({prng: prng});
+				}
+				// load the components
+				parentElementC1 = document.getElementById("c1");
+				var uriC1 = parentElementC1.attributes["src"].value;
+				uriC1 = smash.prepareForLoad({clientName:"c1", uri: uriC1, commErrorCallback: errorCallback});
+				iframeC1 = loadFrame(uriC1, parentElementC1);				
+
+				parentElementC2 = document.getElementById("c2");
+				var uriC2 = parentElementC2.attributes["src"].value;
+				uriC2 = smash.prepareForLoad({clientName:"c2", uri: uriC2, commErrorCallback: errorCallback});
+				iframeC2 = loadFrame(uriC2, parentElementC2);				
+			}
+			var counter=0;
+			// Distribute messages to components
+			function sendMessage(){
+				var topic = document.getElementById("t2").value;
+				var clientName = document.getElementById("cn2").value;
+				var subId = document.getElementById("si2").value;
+
+				counter++;
+
+				if (counter%2 == 0)
+					smash.sendEvent(clientName, topic, ("Hi " + counter), [subId]);
+				else
+					smash.sendEvent(clientName, topic, {content: ("Hi " + counter)}, [subId]);
+			}
+			function checkIsConnected() {
+				var isConnectedC1 = smash.isConnected("c1");
+				var isConnectedC2 = smash.isConnected("c2");
+				alert("isConnected:" + " c1:" + isConnectedC1 + " c2:" + isConnectedC2);
+			}
+			function unload() {
+				smash.prepareForUnload("c1");
+				parentElementC1.removeChild(iframeC1);
+				smash.prepareForUnload("c2");
+				parentElementC2.removeChild(iframeC2);
+			}
+		</script>
+	</head>
+	<body>
+		<p>Main application</p>	
+		<input type="button" onclick="init(false)" value="initialize and connect">				
+		<input type="button" onclick="init(true)" value="initialize and connect using crypto random">
+		<input type="button" onclick="checkIsConnected()" value="check if clients connected">						
+		topic <input type="text" size=20 id="t2" value="abc" />
+		clientName <input type="text" size=20 id="cn2" value="c1" />
+		subId <input type="text" size=20 id="si2" value="0" />
+
+		<input type="button" onclick="sendMessage()" value="sendMessage">
+
+		<input type="button" onclick="unload()" value="unload clients">				
+		<br><br>
+		<div style="width: 500px; height: 200px; border-style: solid;" id="c1" src="http://c1.foo.bar.com/hub11/trunk/providers/test/smash/component_1.html"></div>
+		<div style="width: 500px; height: 200px; border-style: solid;" id="c2" src="http://c2.foo.bar.com/hub11/trunk/providers/test/smash/component_2.html"></div>		
+	</body>
+</html>

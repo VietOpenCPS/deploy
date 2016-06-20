@@ -1,0 +1,9 @@
+admin.email.from.address=test@liferay.com
+admin.email.from.name=Test Test
+jdbc.default.driverClassName=com.mysql.jdbc.Driver
+jdbc.default.username=DB_USERNAME
+jdbc.default.password=DB_PASSWORD
+jdbc.default.url=jdbc:mysql://DB_HOST:DB_PORT/DB_DATABASE?useUnicode=true&characterEncoding=UTF-8&useFastDateParsing=false
+liferay.home=/server
+setup.wizard.enabled=false
+layout.parallel.render.enable=false

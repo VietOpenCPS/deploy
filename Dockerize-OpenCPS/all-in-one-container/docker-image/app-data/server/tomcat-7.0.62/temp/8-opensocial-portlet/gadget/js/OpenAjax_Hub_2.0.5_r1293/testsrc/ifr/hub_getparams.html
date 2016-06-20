@@ -1,0 +1,38 @@
+<html>
+<head>
+    <title>Iframe Client</title>
+    
+    <script src="../config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="2";</script>
+    <script src="../util/loadHub.js"></script>
+    
+    <script src="../util/test_hub.js"></script>
+    <script src="../util/testHelper.js"></script>
+    
+    <script type="text/javascript">
+        var hubClient;
+        
+        function init()
+        {
+            new TestHubClient( "iframe", function( test ) {
+                
+                var params = {
+                        HubClient: {
+                            onSecurityAlert: function() {},
+                            log: test.log
+                        }
+                };
+                hubClient = new OpenAjax.hub.IframeHubClient( params );
+                hubClient.connect();
+                
+                test.assertEqual( params, hubClient.getParameters(), "getParameters() didn't returned expected object" );
+                test.callback( true );
+                
+            });
+        }
+    </script>
+</head>
+
+<body onload="init();">
+</body>
+</html>

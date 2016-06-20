@@ -1,0 +1,233 @@
+<?xml version="1.0"?>
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 6.2.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_6_2_0.dtd">
+
+<service-builder package-path="com.liferay.calendar" auto-namespace-tables="false">
+	<author>Eduardo Lundgren</author>
+	<namespace>Calendar</namespace>
+	<entity name="Calendar" uuid="true" local-service="true" remote-service="true">
+		<!-- PK fields -->
+		<column name="calendarId" type="long" primary="true"></column>
+		<!-- Group instance -->
+		<column name="groupId" type="long"></column>
+		<!-- Audit fields -->
+		<column name="companyId" type="long"></column>
+		<column name="userId" type="long"></column>
+		<column name="userName" type="String"></column>
+		<column name="createDate" type="Date"></column>
+		<column name="modifiedDate" type="Date"></column>
+		<!-- Permission fields -->
+		<column name="resourceBlockId" type="long"></column>
+		<!-- Other fields -->
+		<column name="calendarResourceId" type="long"></column>
+		<column name="name" type="String" localized="true"></column>
+		<column name="description" type="String" localized="true"></column>
+		<column name="timeZoneId" type="String"></column>
+		<column name="color" type="int"></column>
+		<column name="defaultCalendar" type="boolean"></column>
+		<column name="enableComments" type="boolean"></column>
+		<column name="enableRatings" type="boolean"></column>
+		<!-- Order -->
+		<order by="asc">
+			<order-column name="name"></order-column>
+		</order>
+		<!-- Finder methods -->
+		<finder name="G_C" return-type="Collection">
+			<finder-column name="groupId"></finder-column>
+			<finder-column name="calendarResourceId"></finder-column>
+		</finder>
+		<finder name="G_C_D" return-type="Collection">
+			<finder-column name="groupId"></finder-column>
+			<finder-column name="calendarResourceId"></finder-column>
+			<finder-column name="defaultCalendar"></finder-column>
+		</finder>
+	</entity>
+	<entity name="CalendarBooking" uuid="true" local-service="true" remote-service="true" trash-enabled="true">
+		<!-- PK fields -->
+		<column name="calendarBookingId" type="long" primary="true"></column>
+		<!-- Group instance -->
+		<column name="groupId" type="long"></column>
+		<!-- Audit fields -->
+		<column name="companyId" type="long"></column>
+		<column name="userId" type="long"></column>
+		<column name="userName" type="String"></column>
+		<column name="createDate" type="Date"></column>
+		<column name="modifiedDate" type="Date"></column>
+		<!-- Permission fields -->
+		<column name="resourceBlockId" type="long"></column>
+		<!-- Other fields -->
+		<column name="calendarId" type="long"></column>
+		<column name="calendarResourceId" type="long"></column>
+		<column name="parentCalendarBookingId" type="long"></column>
+		<column name="vEventUid" type="String"></column>
+		<column name="title" type="String" localized="true"></column>
+		<column name="description" type="String" localized="true"></column>
+		<column name="location" type="String"></column>
+		<column name="startTime" type="long"></column>
+		<column name="endTime" type="long"></column>
+		<column name="allDay" type="boolean"></column>
+		<column name="recurrence" type="String"></column>
+		<column name="firstReminder" type="long"></column>
+		<column name="firstReminderType" type="String"></column>
+		<column name="secondReminder" type="long"></column>
+		<column name="secondReminderType" type="String"></column>
+		<column name="status" type="int"></column>
+		<column name="statusByUserId" type="long"></column>
+		<column name="statusByUserName" type="String"></column>
+		<column name="statusDate" type="Date"></column>
+		<!-- Order -->
+		<order by="asc">
+			<order-column name="startTime"></order-column>
+			<order-column name="title" case-sensitive="false"></order-column>
+		</order>
+		<!-- Finder methods -->
+		<finder name="CalendarId" return-type="Collection">
+			<finder-column name="calendarId"></finder-column>
+		</finder>
+		<finder name="CalendarResourceId" return-type="Collection">
+			<finder-column name="calendarResourceId"></finder-column>
+		</finder>
+		<finder name="ParentCalendarBookingId" return-type="Collection">
+			<finder-column name="parentCalendarBookingId"></finder-column>
+		</finder>
+		<finder name="C_P" return-type="CalendarBooking" unique="true">
+			<finder-column name="calendarId"></finder-column>
+			<finder-column name="parentCalendarBookingId"></finder-column>
+		</finder>
+		<finder name="C_V" return-type="CalendarBooking" unique="true">
+			<finder-column name="calendarId"></finder-column>
+			<finder-column name="vEventUid"></finder-column>
+		</finder>
+		<finder name="C_S" return-type="Collection">
+			<finder-column name="calendarId"></finder-column>
+			<finder-column name="status" arrayable-operator="OR"></finder-column>
+		</finder>
+		<finder name="P_S" return-type="Collection">
+			<finder-column name="parentCalendarBookingId"></finder-column>
+			<finder-column name="status"></finder-column>
+		</finder>
+		<!-- References -->
+		<reference package-path="com.liferay.mail" entity="Mail"></reference>
+		<reference package-path="com.liferay.portal" entity="Company"></reference>
+		<reference package-path="com.liferay.portal" entity="Subscription"></reference>
+		<reference package-path="com.liferay.portlet.asset" entity="AssetEntry"></reference>
+		<reference package-path="com.liferay.portlet.asset" entity="AssetLink"></reference>
+		<reference package-path="com.liferay.portlet.messageboards" entity="MBMessage"></reference>
+		<reference package-path="com.liferay.portlet.ratings" entity="RatingsStats"></reference>
+		<reference package-path="com.liferay.portlet.social" entity="SocialActivity"></reference>
+		<reference package-path="com.liferay.portlet.social" entity="SocialActivityCounter"></reference>
+		<reference package-path="com.liferay.portlet.trash" entity="TrashEntry"></reference>
+	</entity>
+	<entity name="CalendarImporter" local-service="true" remote-service="false">
+		<!-- References -->
+		<reference package-path="com.liferay.portal" entity="ClassName"></reference>
+		<reference package-path="com.liferay.portal" entity="Group"></reference>
+		<reference package-path="com.liferay.portal" entity="ResourceAction"></reference>
+		<reference package-path="com.liferay.portal" entity="ResourceBlock"></reference>
+		<reference package-path="com.liferay.portal" entity="ResourcePermission"></reference>
+		<reference package-path="com.liferay.portal" entity="Subscription"></reference>
+		<reference package-path="com.liferay.portlet.asset" entity="AssetCategory"></reference>
+		<reference package-path="com.liferay.portlet.asset" entity="AssetEntry"></reference>
+		<reference package-path="com.liferay.portlet.asset" entity="AssetLink"></reference>
+		<reference package-path="com.liferay.portlet.asset" entity="AssetVocabulary"></reference>
+		<reference package-path="com.liferay.portlet.calendar" entity="CalEvent"></reference>
+		<reference package-path="com.liferay.portlet.calendar" entity="CalEvent"></reference>
+		<reference package-path="com.liferay.portlet.messageboards" entity="MBDiscussion"></reference>
+		<reference package-path="com.liferay.portlet.messageboards" entity="MBMessage"></reference>
+		<reference package-path="com.liferay.portlet.messageboards" entity="MBThread"></reference>
+		<reference package-path="com.liferay.portlet.ratings" entity="RatingsEntry"></reference>
+		<reference package-path="com.liferay.portlet.ratings" entity="RatingsStats"></reference>
+		<reference package-path="com.liferay.portlet.social" entity="SocialActivity"></reference>
+	</entity>
+	<entity name="CalendarNotificationTemplate" uuid="true" local-service="true" remote-service="true">
+		<!-- PK fields -->
+		<column name="calendarNotificationTemplateId" type="long" primary="true"></column>
+		<!-- Group instance -->
+		<column name="groupId" type="long"></column>
+		<!-- Audit fields -->
+		<column name="companyId" type="long"></column>
+		<column name="userId" type="long"></column>
+		<column name="userName" type="String"></column>
+		<column name="createDate" type="Date"></column>
+		<column name="modifiedDate" type="Date"></column>
+		<!-- Other fields -->
+		<column name="calendarId" type="long"></column>
+		<column name="notificationType" type="String"></column>
+		<column name="notificationTypeSettings" type="String"></column>
+		<column name="notificationTemplateType" type="String"></column>
+		<column name="subject" type="String"></column>
+		<column name="body" type="String"></column>
+		<!-- Finder methods -->
+		<finder name="CalendarId" return-type="Collection">
+			<finder-column name="calendarId"></finder-column>
+		</finder>
+		<finder name="C_NT_NTT" return-type="CalendarNotificationTemplate">
+			<finder-column name="calendarId"></finder-column>
+			<finder-column name="notificationType"></finder-column>
+			<finder-column name="notificationTemplateType"></finder-column>
+		</finder>
+	</entity>
+	<entity name="CalendarResource" uuid="true" local-service="true" remote-service="true">
+		<!-- PK fields -->
+		<column name="calendarResourceId" type="long" primary="true"></column>
+		<!-- Group instance -->
+		<column name="groupId" type="long"></column>
+		<!-- Audit fields -->
+		<column name="companyId" type="long"></column>
+		<column name="userId" type="long"></column>
+		<column name="userName" type="String"></column>
+		<column name="createDate" type="Date"></column>
+		<column name="modifiedDate" type="Date"></column>
+		<!-- Permission fields -->
+		<column name="resourceBlockId" type="long"></column>
+		<!-- Other fields -->
+		<column name="classNameId" type="long"></column>
+		<column name="classPK" type="long"></column>
+		<column name="classUuid" type="String"></column>
+		<column name="code" type="String"></column>
+		<column name="name" type="String" localized="true"></column>
+		<column name="description" type="String" localized="true"></column>
+		<column name="active" type="boolean"></column>
+		<!-- Order -->
+		<order by="asc">
+			<order-column name="code" case-sensitive="false"></order-column>
+		</order>
+		<!-- Finder methods -->
+		<finder name="GroupId" return-type="Collection">
+			<finder-column name="groupId"></finder-column>
+		</finder>
+		<finder name="Active" return-type="Collection">
+			<finder-column name="active"></finder-column>
+		</finder>
+		<finder name="G_C" return-type="Collection">
+			<finder-column name="groupId" arrayable-operator="OR"></finder-column>
+			<finder-column name="code"></finder-column>
+		</finder>
+		<finder name="G_A" return-type="Collection">
+			<finder-column name="groupId"></finder-column>
+			<finder-column name="active"></finder-column>
+		</finder>
+		<finder name="C_C" return-type="CalendarResource" unique="true">
+			<finder-column name="classNameId"></finder-column>
+			<finder-column name="classPK"></finder-column>
+		</finder>
+		<finder name="C_C_A" return-type="Collection">
+			<finder-column name="companyId"></finder-column>
+			<finder-column name="code" comparator="LIKE"></finder-column>
+			<finder-column name="active"></finder-column>
+		</finder>
+		<!-- References -->
+		<reference package-path="com.liferay.portal" entity="ClassName"></reference>
+		<reference package-path="com.liferay.portlet.asset" entity="AssetEntry"></reference>
+	</entity>
+	<exceptions>
+		<exception>CalendarBookingDuration</exception>
+		<exception>CalendarBookingEndTime</exception>
+		<exception>CalendarBookingStartTime</exception>
+		<exception>CalendarBookingTitle</exception>
+		<exception>CalendarName</exception>
+		<exception>CalendarResourceCode</exception>
+		<exception>CalendarResourceName</exception>
+		<exception>DuplicateCalendarResource</exception>
+		<exception>RequiredCalendar</exception>
+	</exceptions>
+</service-builder>

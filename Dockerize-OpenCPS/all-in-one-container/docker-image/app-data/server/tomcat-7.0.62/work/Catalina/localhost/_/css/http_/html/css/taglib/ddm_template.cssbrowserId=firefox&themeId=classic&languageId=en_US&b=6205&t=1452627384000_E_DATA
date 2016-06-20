@@ -1,0 +1,2 @@
+.display-template .field-content {
+  display: inline-block; }

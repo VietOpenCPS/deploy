@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!DOCTYPE urlrewrite PUBLIC "-//tuckey.org//DTD UrlRewrite 2.6//EN" "http://tuckey.org/res/dtds/urlrewrite2.6.dtd">
+
+<urlrewrite>
+	<rule>
+		<from>^/api/webdav(.{0,2000})</from>
+		<to type="redirect">%{context-path}/webdav$1</to>
+	</rule>
+	<rule>
+		<from>^/(.{1,1000}/)?blog/blogs/rss(.{0,1000})</from>
+		<to type="permanent-redirect">%{context-path}/$1blog/-/blogs/rss$2</to>
+	</rule>
+	<rule>
+		<from>^/(.{1,1000}/)?-/blogs/rss\?&amp;(.{0,1000})</from>
+		<to type="permanent-redirect">%{context-path}/$1-/blogs/rss\?$2</to>
+	</rule>
+	<rule>
+		<from>^/c/journal/view_article_content\?groupId=14&amp;articleId=155291$</from>
+		<to type="permanent-redirect">%{context-path}/web/guest/home/-/journal/rss/14/news</to>
+	</rule>
+	<rule>
+		<from>^/(.{1,1000}/)?tunnel-web(.{0,1000})</from>
+		<to type="permanent-redirect">%{context-path}/$1api$2</to>
+	</rule>
+	<rule>
+		<from>^/web/guest/community/forums/message_boards(.{0,2000})$</from>
+		<to type="permanent-redirect">%{context-path}/web/guest/community/forums/-/message_boards$1</to>
+	</rule>
+	<rule>
+		<from>^/web/guest/home/journal/rss/14/news$</from>
+		<to type="permanent-redirect">%{context-path}/web/guest/home/-/journal/rss/14/news</to>
+	</rule>
+</urlrewrite>

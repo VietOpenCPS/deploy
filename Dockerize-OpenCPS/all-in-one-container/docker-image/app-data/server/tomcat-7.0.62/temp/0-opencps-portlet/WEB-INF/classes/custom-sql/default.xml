@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+
+<custom-sql>
+	<sql file="custom-sql/usermgt.xml" />
+	<sql file="custom-sql/servicemgt.xml" />
+	<sql file="custom-sql/processmgt.xml" />
+	<sql file="custom-sql/dossiermgt.xml" />
+</custom-sql>

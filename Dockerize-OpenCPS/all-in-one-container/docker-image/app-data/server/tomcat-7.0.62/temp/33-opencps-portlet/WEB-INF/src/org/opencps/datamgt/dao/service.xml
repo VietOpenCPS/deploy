@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 6.2.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_6_2_0.dtd">
+<service-builder package-path="org.opencps.datamgt" auto-namespace-tables="false">
+	<author>khoavd</author>
+	<namespace>datamgt</namespace>
+
+	<entity name="DictCollection" local-service="true"
+		remote-service="true" table="opencps_dictcollection">
+
+		<!-- PK fields -->
+
+		<column name="dictCollectionId" type="long" primary="true" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="groupId" type="long" />
+		<column name="userId" type="long" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="collectionCode" type="String" />
+		<column name="collectionName" type="String" localized="true"/>
+		<column name="description" type="String" />
+
+		<!-- Order -->
+		<order by="asc">
+			<order-column name="collectionName" />
+		</order>
+
+		<!-- Finder methods -->
+		<finder name="CollectionCode" return-type="DictCollection"
+			unique="true">
+			<finder-column name="collectionCode" />
+		</finder>
+		
+		<finder name="GroupId" return-type="Collection">
+			<finder-column name="groupId" />
+		</finder>
+		
+		<finder name="G_C" return-type="DictCollection">
+			<finder-column name="groupId"></finder-column>
+			<finder-column name="collectionCode"></finder-column>
+		</finder>
+        <finder name="G_N" return-type="Collection">
+            <finder-column name="groupId"></finder-column>
+            <finder-column name="collectionName" comparator="LIKE" arrayable-operator="OR"></finder-column>
+        </finder>
+
+	</entity>
+
+	<entity name="DictVersion" local-service="true" remote-service="true"
+		table="opencps_dictversion">
+
+		<!-- PK fields -->
+
+		<column name="dictVersionId" type="long" primary="true" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="groupId" type="long" />
+		<column name="userId" type="long" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="dictCollectionId" type="long" />
+		<column name="version" type="String" />
+		<column name="description" type="String" />
+		<column name="validatedFrom" type="Date" />
+		<column name="validatedTo" type="Date" />
+		<column name="issueStatus" type="int" />
+
+		<!-- Order -->
+
+		<!-- Finder methods -->
+		<finder name="DictCollectionId" return-type="Collection">
+			<finder-column name="dictCollectionId" />
+		</finder>
+
+	</entity>
+
+	<entity name="DictItem" local-service="true" remote-service="true"
+		table="opencps_dictitem">
+
+		<!-- PK fields -->
+
+		<column name="dictItemId" type="long" primary="true" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="groupId" type="long" />
+		<column name="userId" type="long" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="dictCollectionId" type="long" />
+		<column name="itemCode" type="String" />
+		<column name="itemName" type="String" localized="true"/>
+		<column name="parentItemId" type="long"/>
+		<column name="treeIndex" type="String" />
+		<column name="issueStatus" type="int" />
+		<column name="dictVersionId" type="long" />
+
+		<!-- Order -->
+		<order by="asc">
+			<order-column name="treeIndex" />
+		</order>
+
+		<!-- Finder methods -->
+		<finder name="C_C_I" return-type="DictItem"
+			where="issueStatus = 1">
+			<finder-column name="dictCollectionId" />
+			<finder-column name="itemCode" />
+		</finder>
+		<finder name="DictVersionId" return-type="Collection">
+			<finder-column name="dictVersionId" />
+		</finder>
+		<finder name="DictCollectionId" return-type="Collection">
+			<finder-column name="dictCollectionId" />
+		</finder>
+		<finder name="ParentItemId" return-type="Collection">
+			<finder-column name="parentItemId" />
+		</finder>
+		<finder name="TreeIndex" return-type="Collection">
+			<finder-column name="treeIndex" comparator="LIKE" />
+		</finder>
+        <finder name="D_I" return-type="Collection" where="issueStatus = 1">
+            <finder-column name="dictCollectionId"></finder-column>
+        </finder>
+        <finder name="C_N" return-type="Collection">
+            <finder-column name="dictCollectionId"></finder-column>
+            <finder-column name="itemName" comparator="LIKE" arrayable-operator="OR"></finder-column>
+        </finder>
+        <finder name="DictCollectionId_ParentItemId" return-type="Collection">
+            <finder-column name="dictCollectionId"></finder-column>
+            <finder-column name="parentItemId"></finder-column>
+        </finder>
+        <finder name="DictCollectionId_ParentItemId_Inuse" return-type="Collection" where="issueStatus = 1">
+            <finder-column name="dictCollectionId"></finder-column>
+            <finder-column name="parentItemId"></finder-column>
+        </finder>
+
+	</entity>
+
+	<exceptions>
+		<exception>EmptyDictCollectionName</exception>
+		<exception>EmptyDictItemName</exception>
+		<exception>DuplicateCollection</exception>
+		<exception>DuplicateVersion</exception>
+		<exception>DuplicateItem</exception>
+		<exception>OutOfLengthCollectionName</exception>
+		<exception>OutOfLengthItemName</exception>
+		<exception>OutOfLengthCollectionDescription</exception>
+		<exception>OutOfLengthVesionDescription</exception>
+		<exception>OutOfLengthItemDescription</exception>
+        <exception>OutOfLengthCollectionCode</exception>
+        <exception>OutOfLengthItemCode</exception>
+        <exception>EmptyCollectionCode</exception>
+        <exception>EmptyItemCode</exception>
+        <exception>ExistDraft</exception>
+	</exceptions>
+
+</service-builder>

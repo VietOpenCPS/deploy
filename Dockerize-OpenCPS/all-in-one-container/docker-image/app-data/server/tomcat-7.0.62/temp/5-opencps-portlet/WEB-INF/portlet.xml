@@ -1,0 +1,660 @@
+<?xml version="1.0"?>
+
+<portlet-app xmlns="http://java.sun.com/xml/ns/portlet/portlet-app_2_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/portlet/portlet-app_2_0.xsd http://java.sun.com/xml/ns/portlet/portlet-app_2_0.xsd" version="2.0">
+	<portlet>
+		<portlet-name>1</portlet-name>
+		<display-name>Data Management</display-name>
+		<portlet-class>org.opencps.datamgt.portlet.DataMamagementPortlet</portlet-class>
+		<init-param>
+			<name>view-template</name>
+			<value>/html/portlets/data_management/admin/dictitems.jsp</value>
+		</init-param>
+		<init-param>
+			<name>template-path</name>
+			<value>/html/portlets/data_management/admin/</value>
+		</init-param>
+		<init-param>
+			<name>config-template</name>
+			<value>/html/portlets/data_management/admin/configuration.jsp</value>
+		</init-param>
+		<expiration-cache>0</expiration-cache>
+		<supports>
+			<mime-type>text/html</mime-type>
+		</supports>
+		<resource-bundle>content.Language_1</resource-bundle>
+		<portlet-info>
+			<title>Data Management</title>
+			<short-title>Data Management</short-title>
+			<keywords>Data Management</keywords>
+		</portlet-info>
+		<security-role-ref>
+			<role-name>administrator</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>guest</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>power-user</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>user</role-name>
+		</security-role-ref>
+	</portlet>
+	<portlet>
+		<portlet-name>2</portlet-name>
+		<display-name>User Management</display-name>
+		<portlet-class>org.opencps.usermgt.portlet.UserMgtPortlet</portlet-class>
+		<init-param>
+			<name>view-template</name>
+			<value>/html/portlets/usermgt/admin/workingunits.jsp</value>
+		</init-param>
+		<init-param>
+			<name>template-path</name>
+			<value>/html/portlets/usermgt/admin/</value>
+		</init-param>
+		<init-param>
+			<name>config-template</name>
+			<value>/html/portlets/usermgt/admin/configuration.jsp</value>
+		</init-param>
+		<init-param>
+			<name>copy-request-parameters</name>
+			<value>true</value>
+		</init-param>
+		<expiration-cache>0</expiration-cache>
+		<supports>
+			<mime-type>text/html</mime-type>
+		</supports>
+		<resource-bundle>content.Language_2</resource-bundle>
+		<portlet-info>
+			<title>User Management</title>
+			<short-title>User Management</short-title>
+			<keywords>User Management</keywords>
+		</portlet-info>
+		<security-role-ref>
+			<role-name>administrator</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>guest</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>power-user</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>user</role-name>
+		</security-role-ref>
+	</portlet>
+	<portlet>
+		<portlet-name>3</portlet-name>
+		<display-name>User Profie</display-name>
+		<portlet-class>org.opencps.usermgt.portlet.UserMgtEditProfilePortlet</portlet-class>
+		<init-param>
+			<name>view-template</name>
+			<value>/html/portlets/usermgt/edit_info/info.jsp</value>
+		</init-param>
+		<init-param>
+			<name>template-path</name>
+			<value>/html/portlets/usermgt/edit_info/</value>
+		</init-param>
+		<expiration-cache>0</expiration-cache>
+		<supports>
+			<mime-type>text/html</mime-type>
+		</supports>
+		<resource-bundle>content.Language_3</resource-bundle>
+		<portlet-info>
+			<title>User Profie</title>
+			<short-title>User Profie</short-title>
+			<keywords>User Profie</keywords>
+		</portlet-info>
+		<security-role-ref>
+			<role-name>administrator</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>guest</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>power-user</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>user</role-name>
+		</security-role-ref>
+	</portlet>
+	<portlet>
+		<portlet-name>4</portlet-name>
+		<display-name>User Contact</display-name>
+		<portlet-class>org.opencps.usermgt.portlet.UserContactPortlet</portlet-class>
+		<init-param>
+			<name>view-template</name>
+			<value>/html/portlets/usermgt/directory/workingunitdirectory.jsp</value>
+		</init-param>
+		<init-param>
+			<name>template-path</name>
+			<value>/html/portlets/usermgt/directory/</value>
+		</init-param>
+		<expiration-cache>0</expiration-cache>
+		<supports>
+			<mime-type>text/html</mime-type>
+		</supports>
+		<resource-bundle>content.Language_4</resource-bundle>
+		<portlet-info>
+			<title>User Profie</title>
+			<short-title>User Profie</short-title>
+			<keywords>User Profie</keywords>
+		</portlet-info>
+		<security-role-ref>
+			<role-name>administrator</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>guest</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>power-user</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>user</role-name>
+		</security-role-ref>
+	</portlet>
+	<portlet>
+		<portlet-name>5</portlet-name>
+		<display-name>Account Registration</display-name>
+		<portlet-class>org.opencps.accountmgt.portlet.AccountRegPortlet</portlet-class>
+		<init-param>
+			<name>view-template</name>
+			<value>/html/portlets/accountmgt/registration/registration.jsp</value>
+		</init-param>
+		<init-param>
+			<name>template-path</name>
+			<value>/html/portlets/accountmgt/registration/</value>
+		</init-param>
+		<expiration-cache>0</expiration-cache>
+		<supports>
+			<mime-type>text/html</mime-type>
+		</supports>
+		<resource-bundle>content.Language_5</resource-bundle>
+		<portlet-info>
+			<title>Account Registration</title>
+			<short-title>Account Registration</short-title>
+			<keywords>Account Registration</keywords>
+		</portlet-info>
+		<security-role-ref>
+			<role-name>administrator</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>guest</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>power-user</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>user</role-name>
+		</security-role-ref>
+	</portlet>
+	<portlet>
+		<portlet-name>6</portlet-name>
+		<display-name>Account Profile</display-name>
+		<portlet-class>org.opencps.accountmgt.portlet.AccountProfilePortlet</portlet-class>
+		<init-param>
+			<name>view-template</name>
+			<value>/html/portlets/accountmgt/profile/viewprofile.jsp</value>
+		</init-param>
+		<init-param>
+			<name>template-path</name>
+			<value>/html/portlets/accountmgt/profile/</value>
+		</init-param>
+		<expiration-cache>0</expiration-cache>
+		<supports>
+			<mime-type>text/html</mime-type>
+		</supports>
+		<resource-bundle>content.Language_6</resource-bundle>
+		<portlet-info>
+			<title>Account Profile</title>
+			<short-title>Account Profile</short-title>
+			<keywords>Account Profile</keywords>
+		</portlet-info>
+		<security-role-ref>
+			<role-name>administrator</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>guest</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>power-user</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>user</role-name>
+		</security-role-ref>
+	</portlet>
+	<portlet>
+		<portlet-name>8</portlet-name>
+		<display-name>Account Management</display-name>
+		<portlet-class>org.opencps.accountmgt.portlet.AccountMgtPortlet</portlet-class>
+		<init-param>
+			<name>view-template</name>
+			<value>/html/portlets/accountmgt/admin/citizenlist.jsp</value>
+		</init-param>
+		<init-param>
+			<name>template-path</name>
+			<value>/html/portlets/accountmgt/admin/</value>
+		</init-param>
+		<expiration-cache>0</expiration-cache>
+		<supports>
+			<mime-type>text/html</mime-type>
+		</supports>
+		<resource-bundle>content.Language_8</resource-bundle>
+		<portlet-info>
+			<title>Account Management</title>
+			<short-title>Account Management</short-title>
+			<keywords>Account Management</keywords>
+		</portlet-info>
+		<security-role-ref>
+			<role-name>administrator</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>guest</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>power-user</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>user</role-name>
+		</security-role-ref>
+	</portlet>
+	<portlet>
+		<portlet-name>9</portlet-name>
+		<display-name>Service Management</display-name>
+		<portlet-class>org.opencps.servicemgt.portlet.ServiceMgtPortlet</portlet-class>
+		<init-param>
+			<name>view-template</name>
+			<value>/html/portlets/servicemgt/admin/serviceinfolist.jsp</value>
+		</init-param>
+		<init-param>
+			<name>template-path</name>
+			<value>/html/portlets/servicemgt/admin/</value>
+		</init-param>
+		<expiration-cache>0</expiration-cache>
+		<supports>
+			<mime-type>text/html</mime-type>
+		</supports>
+		<resource-bundle>content.Language_9</resource-bundle>
+		<portlet-info>
+			<title>Service Management</title>
+			<short-title>Service Management</short-title>
+			<keywords>Service Management</keywords>
+		</portlet-info>
+		<security-role-ref>
+			<role-name>administrator</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>guest</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>power-user</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>user</role-name>
+		</security-role-ref>
+	</portlet>
+	<portlet>
+		<portlet-name>10</portlet-name>
+		<display-name>Service Directory</display-name>
+		<portlet-class>org.opencps.servicemgt.portlet.ServiceDirectoryPortlet</portlet-class>
+		<init-param>
+			<name>view-template</name>
+			<value>/html/portlets/servicemgt/directory/serviceinfodirectorylist.jsp</value>
+		</init-param>
+		<init-param>
+			<name>template-path</name>
+			<value>/html/portlets/servicemgt/directory/</value>
+		</init-param>
+		<expiration-cache>0</expiration-cache>
+		<supports>
+			<mime-type>text/html</mime-type>
+		</supports>
+		<resource-bundle>content.Language_10</resource-bundle>
+		<portlet-info>
+			<title>Service Directory</title>
+			<short-title>Service Directory</short-title>
+			<keywords>Service Directory</keywords>
+		</portlet-info>
+		<security-role-ref>
+			<role-name>administrator</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>guest</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>power-user</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>user</role-name>
+		</security-role-ref>
+	</portlet>
+	<portlet>
+		<portlet-name>11</portlet-name>
+		<display-name>Service Menu</display-name>
+		<portlet-class>org.opencps.servicemgt.portlet.ServiceMenuPortlet</portlet-class>
+		<init-param>
+			<name>view-template</name>
+			<value>/html/portlets/servicemgt/menu/serviceinfodirectorymenu.jsp</value>
+		</init-param>
+		<init-param>
+			<name>template-path</name>
+			<value>/html/portlets/servicemgt/menu/</value>
+		</init-param>
+		<expiration-cache>0</expiration-cache>
+		<supports>
+			<mime-type>text/html</mime-type>
+		</supports>
+		<resource-bundle>content.Language_11</resource-bundle>
+		<portlet-info>
+			<title>Service Menu</title>
+			<short-title>Service Menu</short-title>
+			<keywords>Service Menu</keywords>
+		</portlet-info>
+		<security-role-ref>
+			<role-name>administrator</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>guest</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>power-user</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>user</role-name>
+		</security-role-ref>
+	</portlet>
+	<portlet>
+		<portlet-name>15</portlet-name>
+		<display-name>Process Admin Management</display-name>
+		<portlet-class>org.opencps.processmgt.portlet.ProcessMgtAdminPortlet</portlet-class>
+		<init-param>
+			<name>view-template</name>
+			<value>/html/portlets/processmgt/admin/serviceprocesslist.jsp</value>
+		</init-param>
+		<init-param>
+			<name>template-path</name>
+			<value>/html/portlets/processmgt/admin/</value>
+		</init-param>
+		<expiration-cache>0</expiration-cache>
+		<supports>
+			<mime-type>text/html</mime-type>
+		</supports>
+		<resource-bundle>content.Language_15</resource-bundle>
+		<portlet-info>
+			<title>Process Admin Management</title>
+			<short-title>Process Admin Management</short-title>
+			<keywords>Process Admin Management</keywords>
+		</portlet-info>
+		<security-role-ref>
+			<role-name>administrator</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>guest</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>power-user</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>user</role-name>
+		</security-role-ref>
+	</portlet>
+	<portlet>
+		<portlet-name>16</portlet-name>
+		<display-name>Dossier Process Order Management</display-name>
+		<portlet-class>org.opencps.processmgt.portlet.ProcessOrderPortlet</portlet-class>
+		<init-param>
+			<name>view-template</name>
+			<value>/html/portlets/processmgt/processorder/processordertodolist.jsp</value>
+		</init-param>
+		<init-param>
+			<name>template-path</name>
+			<value>/html/portlets/processmgt/processorder/</value>
+		</init-param>
+		<init-param>
+			<name>copy-request-parameters</name>
+			<value>true</value>
+		</init-param>
+		<expiration-cache>0</expiration-cache>
+		<supports>
+			<mime-type>text/html</mime-type>
+		</supports>
+		<resource-bundle>content.Language_16</resource-bundle>
+		<portlet-info>
+			<title>Dossier Process Order Management</title>
+			<short-title>Dossier Process Order Management</short-title>
+			<keywords>Dossier Process Order Management</keywords>
+		</portlet-info>
+		<security-role-ref>
+			<role-name>administrator</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>guest</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>power-user</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>user</role-name>
+		</security-role-ref>
+		<supported-public-render-parameter>active</supported-public-render-parameter>
+	</portlet>
+	<portlet>
+		<portlet-name>17</portlet-name>
+		<display-name>Process Order Menu</display-name>
+		<portlet-class>org.opencps.processmgt.portlet.ProcessOrderMenuPortlet</portlet-class>
+		<init-param>
+			<name>view-template</name>
+			<value>/html/portlets/processmgt/ordermenu/processordermenu.jsp</value>
+		</init-param>
+		<init-param>
+			<name>template-path</name>
+			<value>/html/portlets/processmgt/ordermenu/</value>
+		</init-param>
+		<expiration-cache>0</expiration-cache>
+		<supports>
+			<mime-type>text/html</mime-type>
+		</supports>
+		<resource-bundle>content.Language_17</resource-bundle>
+		<portlet-info>
+			<title>Process Order Menu</title>
+			<short-title>Process Order Menu</short-title>
+			<keywords>Process Order Menu</keywords>
+		</portlet-info>
+		<security-role-ref>
+			<role-name>administrator</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>guest</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>power-user</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>user</role-name>
+		</security-role-ref>
+		<supported-public-render-parameter>active</supported-public-render-parameter>
+	</portlet>
+	<portlet>
+		<portlet-name>18</portlet-name>
+		<display-name>Dossier BackOffice Management</display-name>
+		<portlet-class>org.opencps.processmgt.portlet.DossierMgtBackOfficePortlet</portlet-class>
+		<init-param>
+			<name>view-template</name>
+			<value>/html/portlets/processmgt/backofficedossier/backofficedossierlist.jsp</value>
+		</init-param>
+		<init-param>
+			<name>template-path</name>
+			<value>/html/portlets/processmgt/backofficedossier/</value>
+		</init-param>
+		<expiration-cache>0</expiration-cache>
+		<supports>
+			<mime-type>text/html</mime-type>
+		</supports>
+		<resource-bundle>content.Language_18</resource-bundle>
+		<portlet-info>
+			<title>Dossier BackOffice Management</title>
+			<short-title>Dossier BackOffice Management</short-title>
+			<keywords>Dossier BackOffice Management</keywords>
+		</portlet-info>
+		<security-role-ref>
+			<role-name>administrator</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>guest</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>power-user</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>user</role-name>
+		</security-role-ref>
+	</portlet>
+	<portlet>
+		<portlet-name>12</portlet-name>
+		<display-name>Dossier Admin Management</display-name>
+		<portlet-class>org.opencps.dossiermgt.portlet.DossierMgtAdminPortlet</portlet-class>
+		<init-param>
+			<name>view-template</name>
+			<value>/html/portlets/dossiermgt/admin/dossiertemplatelist.jsp</value>
+		</init-param>
+		<init-param>
+			<name>template-path</name>
+			<value>/html/portlets/dossiermgt/admin/</value>
+		</init-param>
+		<expiration-cache>0</expiration-cache>
+		<supports>
+			<mime-type>text/html</mime-type>
+		</supports>
+		<resource-bundle>content.Language_12</resource-bundle>
+		<portlet-info>
+			<title>Dossier Admin Management</title>
+			<short-title>Dossier Admin Management</short-title>
+			<keywords>Dossier Admin Management</keywords>
+		</portlet-info>
+		<security-role-ref>
+			<role-name>administrator</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>guest</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>power-user</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>user</role-name>
+		</security-role-ref>
+	</portlet>
+	<portlet>
+		<portlet-name>13</portlet-name>
+		<display-name>Dossier FrontOffice Management</display-name>
+		<portlet-class>org.opencps.dossiermgt.portlet.DossierMgtFrontOfficePortlet</portlet-class>
+		<init-param>
+			<name>view-template</name>
+			<value>/html/portlets/dossiermgt/frontoffice/frontofficedossierlist.jsp</value>
+		</init-param>
+		<init-param>
+			<name>template-path</name>
+			<value>/html/portlets/dossiermgt/frontoffice/</value>
+		</init-param>
+		<init-param>
+			<name>copy-request-parameters</name>
+			<value>true</value>
+		</init-param>
+		<expiration-cache>0</expiration-cache>
+		<supports>
+			<mime-type>text/html</mime-type>
+		</supports>
+		<resource-bundle>content.Language_13</resource-bundle>
+		<portlet-info>
+			<title>Dossier FrontOffice Management</title>
+			<short-title>Dossier FrontOffice Management</short-title>
+			<keywords>Dossier FrontOffice Management</keywords>
+		</portlet-info>
+		<security-role-ref>
+			<role-name>administrator</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>guest</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>power-user</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>user</role-name>
+		</security-role-ref>
+	</portlet>
+	<portlet>
+		<portlet-name>14</portlet-name>
+		<display-name>Dossier State Menu</display-name>
+		<portlet-class>org.opencps.dossiermgt.portlet.DossierStateMenuPortlet</portlet-class>
+		<init-param>
+			<name>view-template</name>
+			<value>/html/portlets/dossiermgt/statemenu/dossiermenu.jsp</value>
+		</init-param>
+		<init-param>
+			<name>template-path</name>
+			<value>/html/portlets/dossiermgt/statemenu/</value>
+		</init-param>
+		<expiration-cache>0</expiration-cache>
+		<supports>
+			<mime-type>text/html</mime-type>
+		</supports>
+		<resource-bundle>content.Language_14</resource-bundle>
+		<portlet-info>
+			<title>Dossier State Menu</title>
+			<short-title>Dossier State Menu</short-title>
+			<keywords>Dossier State Menu</keywords>
+		</portlet-info>
+		<security-role-ref>
+			<role-name>administrator</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>guest</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>power-user</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>user</role-name>
+		</security-role-ref>
+	</portlet>
+	<portlet>
+		<portlet-name>19</portlet-name>
+		<display-name>Dossier FrontOffice Monitoring</display-name>
+		<portlet-class>org.opencps.dossiermgt.portlet.DossierMornitoringPortlet</portlet-class>
+		<init-param>
+			<name>view-template</name>
+			<value>/html/portlets/dossiermgt/monitoring/view.jsp</value>
+		</init-param>
+		<init-param>
+			<name>template-path</name>
+			<value>/html/portlets/dossiermgt/statemenu/</value>
+		</init-param>
+		<expiration-cache>0</expiration-cache>
+		<supports>
+			<mime-type>text/html</mime-type>
+		</supports>
+		<resource-bundle>content.Language_14</resource-bundle>
+		<portlet-info>
+			<title>Dossier FrontOffice Monitoring</title>
+			<short-title>Dossier FrontOffice Monitoring</short-title>
+			<keywords>Dossier FrontOffice Monitoring</keywords>
+		</portlet-info>
+		<security-role-ref>
+			<role-name>administrator</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>guest</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>power-user</role-name>
+		</security-role-ref>
+		<security-role-ref>
+			<role-name>user</role-name>
+		</security-role-ref>
+	</portlet>
+	<public-render-parameter>
+		<identifier>active</identifier>
+		<qname>active</qname>
+	</public-render-parameter>
+</portlet-app>

@@ -1,0 +1,19 @@
+<html>
+<head>
+    <title>Redirecting Client</title>
+    
+    <script src="../config.js"></script>
+    <script type="text/javascript">
+        function init()
+        {
+            // redirect to new domain
+            var newLocation = window.location.href.replace( COMPONENT1_DOMAIN, COMPONENT2_DOMAIN );
+            newLocation = newLocation.replace( "iframe_redirect1.html", "iframe_redirect2.html" );
+            window.location.replace( newLocation );
+        }
+    </script>
+</head>
+
+<body onload="init();">
+</body>
+</html>
