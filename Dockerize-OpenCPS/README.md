@@ -15,9 +15,14 @@
 ### Các tính năng chính:  
 
 
-# Hướng dẫn triển khai Offline  
-* Thông tin chi tiết triển khai Offline, mọi người có thể tham khảo tại đường dẫn Wiki:
-  * [Wiki: Quy trình triển khai Offline cho người dùng cuối](https://github.com/VietOpenCPS/deploy/wiki/H%C6%B0%E1%BB%9Bng-d%E1%BA%ABn-tri%E1%BB%83n-khai-%E1%BB%A9ng-d%E1%BB%A5ng-OpenCPS-Offline-cho-ng%C6%B0%E1%BB%9Di-d%C3%B9ng)
+# Hướng dẫn triển khai Offline 
+* Có 2 cách để triển khai ứng dụng Offline, mọi người có thể tham khảo:
+  * Triển khai ứng dụng OpenCPS bằng Docker theo mô hình All-in-one, tất cả được đóng gói trong một container  
+    * Thông tin chi tiết mọi người có thể tham khảo tại đường dẫn Wiki:  
+    [Wiki: Quy trình triển khai Offline cho người dùng cuối theo mô hình một container all-in-one](https://github.com/VietOpenCPS/deploy/wiki/H%C6%B0%E1%BB%9Bng-d%E1%BA%ABn-tri%E1%BB%83n-khai-%E1%BB%A9ng-d%E1%BB%A5ng-OpenCPS-Offline-cho-ng%C6%B0%E1%BB%9Di-d%C3%B9ng-theo-m%C3%B4-h%C3%ACnh-all-in-one,-t%E1%BA%A5t-c%E1%BA%A3-%C4%91%C3%B3ng-g%C3%B3i-trong-m%E1%BB%99t-container)  
+  * Triển khai ứng dụng OpenCPS bằng Docker theo mô hình chạy 2 container  
+    * Thông tin chi tiết mọi người có thể tham khảo tại đường dẫn Wiki:  
+    [Wiki: Quy trình triển khai Offline cho người dùng cuối theo mô hình chạy 2 container](https://github.com/VietOpenCPS/deploy/wiki/H%C6%B0%E1%BB%9Bng-d%E1%BA%ABn-tri%E1%BB%83n-khai-%E1%BB%A9ng-d%E1%BB%A5ng-OpenCPS-Offline-cho-ng%C6%B0%E1%BB%9Di-d%C3%B9ng)  
 
 # Hướng dẫn đóng gói ứng dụng OpenCPS sử dụng Docker image cho người phát triển (Developer)  
 * Thông tin chi tiết về quy trình đóng gói ứng dụng OpenCPS, mọi người có thể tham khảo tại đường dẫn Wiki:
