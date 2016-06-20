@@ -54,9 +54,9 @@ mysql_secure_installation
 ```
 cd /tmp && wget https://github.com/VietOpenCPS/deploy/blob/master/MariaDB_Master_Slave/opencps.sql && tar -zxvf opencps.tar.gz
 ```
-- Tạo database OpenCPS và import dữ liệu vào
+- Đăng nhập vào CSDL MariaDB (sẽ yêu cầu password mà bạn đã tạo ở trên)
 ```
-mysql -uroot -p        ← dang nhap vao MariaDB
+mysql -uroot -p
 ```
 - Sau khi đăng nhập Database, ta tiếp tục chạy các câu lệnh sau để tạo Database OpenCPS và import dữ liệu vào:
 ```
@@ -75,21 +75,20 @@ innodb_file_per_table=1
 ```
 - Tạo soft link /etc/my.cnf như sau:
 ```
-ln /etc/my.cnf.d/server.cnf /etc/my.cnf
+ln -s /etc/my.cnf.d/server.cnf /etc/my.cnf
 ```
 - Khởi động lại MariaDB:
 ```
 systemctl restart mysql
 ```
-- Sau khi Đăng nhập vào MariaDB, tạo tài khoản Slave và gán quyền cần thiết cho tà khoản này
+- Sau khi Đăng nhập vào MariaDB, tạo tài khoản Slave và gán quyền cần thiết cho tài khoản này
 ```
 Mariadb [(none)]> grant replication slave on *.* to slave@'%' identified by 'slavepasswd';
 Mariadb [(none)]> flush privileges;
 Mariadb [(none)]> flush privileges with read lock;
-Mariadb [(none)]> show master status;
+Mariadb [(none)]> SHOW MASTER STATUS;
 ```
-
-Câu lệnh show Master Status sẽ hiển thị  binary lock MariaDB Master đang sử dụng và position của nó
+Câu lệnh SHOW MASTER STATUS sẽ hiển thị  binary lock MariaDB Master đang sử dụng và position của nó
 
 *Lưu ý: Câu lệnh flush privilges with read lock sẽ lock db và sẽ không cho phép insert, update, delete db (nhằm mục đích giữ nguyên log position để chuyển sang Slave và đảm bảo việc dữ liệu không bị sai lệch giữa Master và Slave).*
 
@@ -97,9 +96,9 @@ Câu lệnh show Master Status sẽ hiển thị  binary lock MariaDB Master đa
 ```
 mysqldump -uroot -p opencps > forslave.sql
 ```
-(hoặc có thể lấy file initdata opencps.sql ở trên vì ta vẫn chưa thay đổi dữ liệu gì)
+(hoặc có thể lấy file initdata opencps.sql ở trên vì ta vẫn chưa thay đổi gi ở Database OpenCPS)
 
-- đăng nhập Database trên Master:
+- Đăng nhập Database trên Master:
 ```
 mysql -uroot -p
 ```
@@ -118,12 +117,15 @@ firewall-cmd --add-service=mysql --permanent
 firewall-cmd –reload
 ```
 ####Cấu hình trên Slave Server:
-- Đăng nhập vào MariaDB, tạo db opencps và tài khoản slave.
+- Đăng nhập vào MariaDB
 ```
 Mysql -uroot -p
-Mariadb [(none)]> create database opencps;
-Mariadb [(none)]> grant all privileges on opencps.* to 'slave'@'localhost' with grant option;
-Mariadb [(none)]> flush privileges;
+```
+- Sau khi đăng nhập vào Database, tạo db opencps và tài khoản slave:
+```
+create database opencps;
+grant all privileges on opencps.* to 'slave'@'localhost' with grant option;
+flush privileges;
 ```
 - Import dữ liệu từ file nhận từ Master Server:
 ```
@@ -142,7 +144,7 @@ vi /etc/my.cnf.d/server.cnf
 ```
 - Tạo soft link /etc/my.cnf như sau:
 ```
-ln /etc/my.cnf.d/server.cnf /etc/my.cnf
+ln -s /etc/my.cnf.d/server.cnf /etc/my.cnf
 ```
 - Khởi động lại MariaDB trên Slave:
 ```
