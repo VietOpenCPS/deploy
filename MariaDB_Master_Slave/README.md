@@ -52,7 +52,7 @@ mysql_secure_installation
 ####Trên Master Server:
 - Down initdata của OpenCPS.
 ```
-cd /tmp && wget https://github.com/VietOpenCPS/deploy/blob/master/MariaDB_Master_Slave/opencps.sql && tar -zxvf opencps.tar.gz
+cd /tmp && wget https://github.com/VietOpenCPS/deploy/raw/master/MariaDB_Master_Slave/opencps.tar.gz && tar -zxvf opencps.tar.gz
 ```
 - Đăng nhập vào CSDL MariaDB (sẽ yêu cầu password mà bạn đã tạo ở trên)
 ```
@@ -117,7 +117,7 @@ firewall-cmd --add-service=mysql --permanent
 firewall-cmd –reload
 ```
 ####Cấu hình trên Slave Server:
-- Đăng nhập vào MariaDB
+- Đăng nhập vào MariaDB (bằng password Root Database của Slave Server)
 ```
 Mysql -uroot -p
 ```
