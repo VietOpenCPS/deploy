@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+
+<taglib xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.0" xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd">
+	<tlib-version>1.0</tlib-version>
+	<short-name>dl-upload</short-name>
+	<uri>http://opencps.org/dl-upload</uri>
+	<tag>
+		<description><![CDATA[Provides the DL Multiple Upload component tags, prefixed with <code>dl-upload:multiple</code>.]]></description>
+		<name>multiple</name>
+		<tag-class>org.opencps.taglib.dl.upload.DLMultipleUploadTag</tag-class>
+		
+		<body-content>JSP</body-content>
+		<attribute>
+			<description><![CDATA[]]></description>
+			<name>addTempFiles</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+			<type>java.lang.String</type>
+		</attribute>
+		<attribute>
+			<description><![CDATA[]]></description>
+			<name>deleteTempFile</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+			<type>java.lang.Long</type>
+		</attribute>
+		<attribute>
+			<description><![CDATA[]]></description>
+			<name>tempFolderName</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+			<type>java.lang.Integer</type>
+		</attribute>
+		<attribute>
+			<name>fileDescription</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<type>java.util.String</type>
+		</attribute>
+		<attribute>
+			<description><![CDATA[]]></description>
+			<name>tempRandomSuffix</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<type>java.lang.String</type>
+		</attribute>
+		<attribute>
+			<description><![CDATA[]]></description>
+			<name>maxFileSize</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<type>java.lang.String</type>
+		</attribute>
+		<attribute>
+			<description><![CDATA[]]></description>
+			<name>cssClass</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<type>java.lang.String</type>
+		</attribute>
+	</tag>
+</taglib>

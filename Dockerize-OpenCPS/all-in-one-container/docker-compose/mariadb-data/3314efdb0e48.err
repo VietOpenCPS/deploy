@@ -1,0 +1,19 @@
+160620 07:37:05 mysqld_safe Starting mysqld daemon with databases from /var/lib/mysql
+160620  7:37:05 [Note] /usr/sbin/mysqld (mysqld 10.0.25-MariaDB) starting as process 163 ...
+160620  7:37:05 [Note] InnoDB: Using mutexes to ref count buffer pool pages
+160620  7:37:05 [Note] InnoDB: The InnoDB memory heap is disabled
+160620  7:37:05 [Note] InnoDB: Mutexes and rw_locks use GCC atomic builtins
+160620  7:37:05 [Note] InnoDB: Memory barrier is not used
+160620  7:37:05 [Note] InnoDB: Compressed tables use zlib 1.2.7
+160620  7:37:05 [Note] InnoDB: Using Linux native AIO
+160620  7:37:05 [Note] InnoDB: Not using CPU crc32 instructions
+160620  7:37:05 [Note] InnoDB: Initializing buffer pool, size = 128.0M
+160620  7:37:05 [Note] InnoDB: Completed initialization of buffer pool
+160620  7:37:05 [Note] InnoDB: Highest supported file format is Barracuda.
+160620  7:37:05 [Note] InnoDB: 128 rollback segment(s) are active.
+160620  7:37:05 [Note] InnoDB: Waiting for purge to start
+160620  7:37:06 [Note] InnoDB:  Percona XtraDB (http://www.percona.com) 5.6.29-76.2 started; log sequence number 1616707
+160620  7:37:06 [Note] Plugin 'FEEDBACK' is disabled.
+160620  7:37:06 [Note] Server socket created on IP: '::'.
+160620  7:37:06 [Note] /usr/sbin/mysqld: ready for connections.
+Version: '10.0.25-MariaDB'  socket: '/var/lib/mysql/mysql.sock'  port: 3306  MariaDB Server

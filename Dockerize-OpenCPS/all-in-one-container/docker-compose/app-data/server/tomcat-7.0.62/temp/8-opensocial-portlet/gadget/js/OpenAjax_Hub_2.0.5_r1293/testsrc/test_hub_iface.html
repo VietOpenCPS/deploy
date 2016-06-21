@@ -1,0 +1,781 @@
+<html>
+<head>
+    <title> IframeContainer tests </title>
+    
+    <script type="text/javascript" src="../dojo/dojo/dojo.js" djConfig="isDebug: true"></script>
+    
+    <script type="text/javascript" src="config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="1";</script>
+    <script type="text/javascript" src="util/loadHub.js"></script>
+    <script type="text/javascript" src="util/test_hub.js"></script>
+    <script type="text/javascript" src="util/testHelper.js"></script>
+
+    <script type="text/javascript" src="manager/test_manager_container.js"></script>
+    <script type="text/javascript" src="ifr/test_iframe_container.js"></script>
+    <script type="text/javascript" src="inline/test_inline_container.js"></script>
+
+    <script type="text/javascript">
+        dojo.require( "doh.runner" );
+        dojo.addOnLoad( function() {
+            doh.run();
+        });
+        
+        // create test container object based on URL param
+        var testctn = null;
+        var re = new RegExp( "[\\?&]module=([^&#]*)" );
+        var match = (re.exec( window.location.search ))[1];
+        var containerName = decodeURIComponent( match.replace( /\+/g, "%20" ) );
+        switch( containerName ) {
+            case "inline":
+                testctn = TestInlineContainer;
+                break;
+            case "iframe":
+                testctn = TestIframeContainer;
+                break;
+            case "manager":
+                testctn = TestManagerContainer;
+                break;
+        }
+
+        var managedHub = null;
+
+        doh.registerGroup( "Hub tests for " + containerName + " containers",
+            // tests
+            [
+                {
+                    name: "hub subscribe OpenAjax.hub.Error.BadParameters",
+                    description: "Test Hub.subscribe() for OpenAjax.hub.Error.BadParameters errors",
+                    timeout: 5000,
+                    setUp: function()
+                    {
+                        this.testManager = new TestHubManager();
+                    },
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+
+                        // listen for msg from iframe client
+                        var that = this;
+                        this.testManager.onMsg = function( data ) {
+                            var result = data.r;
+                            var msg = data.m;
+                            if ( result ) {
+                                that.d.callback( true );
+                            } else {
+                                that.d.errback( msg );
+                            }
+                        };
+
+                        function onClientDisconnect( container ) {
+                            this.d.errback( "client disconnected" );
+                        }
+                        function onClientSecurityAlert( container, securityAlert ) {
+                            this.d.errback( "client security alert: " + securityAlert );
+                        }
+
+                        var container = testctn.createContainerForTest(
+                            "hub_subscribe_badparams",
+                            managedHub,
+                            "sub_badparams_client",
+                            {   Container: {
+                                    onDisconnect: onClientDisconnect,
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this,
+                                    log: this.testManager.log
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+
+                        return this.d;
+                    },
+                    tearDown: function()
+                    {
+                        this.testManager.cleanup();
+                    }
+                },
+            
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "hub subscribe onComplete callback",
+                    description: "Test the 'onComplete' callback and 'scope' parameters of Hub.subscribe(); " +
+                            "also test that subscribe() returns a string",
+                    timeout: 5000,
+                    setUp: function()
+                    {
+                        this.testManager = new TestHubManager();
+                        this.hub = new OpenAjax.hub.ManagedHub({
+                            onPublish: function() { return true; },
+                            onSubscribe: this._onSubscribe,
+                            scope: this,
+                            log: function( msg ) {
+                                console.log( msg );
+                            }
+                        });
+                    },
+                    _onSubscribe: function( topic, container )
+                    {
+                        if ( topic == "hub.subscribe.oncomplete.xxxx" ) {
+                            return false;
+                        }
+                        return true;
+                    },
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+
+                        // listen for msg from iframe client
+                        var that = this;
+                        this.testManager.onMsg = function( data ) {
+                            var result = data.r;
+                            var msg = data.m;
+                            if ( result ) {
+                                that._completed( msg );
+                            } else {
+                                that.d.errback( msg );
+                            }
+                        };
+
+                        function onClientDisconnect( container ) {
+                            this.d.errback( "client disconnected" );
+                        }
+                        function onClientSecurityAlert( container, securityAlert ) {
+                            this.d.errback( "client security alert: " + securityAlert );
+                        }
+
+                        var container = testctn.createContainerForTest(
+                            "hub_subscribe_oncomplete",
+                            this.hub,
+                            "sub_oncomplete_client",
+                            {   Container: {
+                                    onDisconnect: onClientDisconnect,
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this,
+                                    log: this.testManager.log
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+
+                        return this.d;
+                    },
+                    _completed: function( msg )
+                    {
+                        this[ msg + "_completed" ] = true;
+                        if ( this.test1_completed && this.test2_completed &&
+                                this.test3_completed )
+                        {
+                            this.d.callback( true );    // test successful
+                        }
+                    },
+                    tearDown: function()
+                    {
+                        this.testManager.cleanup();
+                    }
+                },
+            
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "hub subscribe onData callback",
+                    description: "Test the 'onData' callback, 'scope' and 'subscriberData' parameters of Hub.subscribe()",
+                    timeout: 5000,
+                    setUp: function()
+                    {
+                        this._subscribed = 0;
+                        this.testManager = new TestHubManager();
+                        this.hub = new OpenAjax.hub.ManagedHub({
+                            onPublish: this._onPublish,
+                            onSubscribe: this._onSubscribe,
+                            scope: this,
+                            log: function( msg ) {
+                                console.log( msg );
+                            }
+                        });
+                    },
+                    _onPublish: function( topic, data, pcont, scont )
+                    {
+                        //console.log( "\t== onPublish " + topic );
+                        return true;
+                    },
+                    _onSubscribe: function( topic, container )
+                    {
+                        // test subscribes 4 times;  afterwards, we publish
+                        this._subscribed++;
+                        if ( this._subscribed == 4 ) {
+                            setTimeout( doh.hitch( this, this._publish ), 0 );
+                        }
+                        
+                        if ( topic == "hub.subscribe.ondata.xxxx" ) {
+                            //console.log( "\t== onSubscribe '" + topic + "' disallowed" );
+                            return false;
+                        }
+                        //console.log( "\t== onSubscribe '" + topic + "' allowed" );
+                        return true;
+                    },
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+
+                        // listen for msg from iframe client
+                        var that = this;
+                        this.testManager.onMsg = function( data ) {
+                            var result = data.r;
+                            var msg = data.m;
+                            if ( result ) {
+                                that._completed( msg );
+                            } else {
+                                that.d.errback( msg );
+                            }
+                        };
+
+                        function onClientDisconnect( container ) {
+                            this.d.errback( "client disconnected" );
+                        }
+                        function onClientSecurityAlert( container, securityAlert ) {
+                            this.d.errback( "client security alert: " + securityAlert );
+                        }
+
+                        var container = testctn.createContainerForTest(
+                            "hub_subscribe_ondata",
+                            this.hub,
+                            "sub_ondata_client",
+                            {   Container: {
+                                    onDisconnect: onClientDisconnect,
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this,
+                                    log: this.testManager.log
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+
+                        return this.d;
+                    },
+                    _publish: function( container )
+                    {
+                        this.hub.publish( "hub.subscribe.ondata.xxxx", null );
+                        this.hub.publish( "hub.subscribe.ondata.null", null );
+                        this.hub.publish( "hub.subscribe.ondata.str", "The quick brown fox jumps over the lazy dog." );
+                        this.hub.publish( "hub.subscribe.ondata.obj", { foo: "bar", index: 201 } );
+                    },
+                    _completed: function( msg )
+                    {
+                        this[ msg + "_completed" ] = true;
+                        if ( this.test1_completed && this.test2_completed &&
+                                this.test3_completed )
+                        {
+                            this.d.callback( true );    // test successful
+                        }
+                    },
+                    tearDown: function()
+                    {
+                        this.testManager.cleanup();
+                    }
+                },
+            
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "hub publish OpenAjax.hub.Error.BadParameters",
+                    description: "Test Hub.publish() for OpenAjax.hub.Error.BadParameters errors",
+                    timeout: 5000,
+                    setUp: function()
+                    {
+                        this.testManager = new TestHubManager();
+                    },
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+
+                        // listen for msg from iframe client
+                        var that = this;
+                        this.testManager.onMsg = function( data ) {
+                            var result = data.r;
+                            var msg = data.m;
+                            if ( result ) {
+                                that.d.callback( true );
+                            } else {
+                                that.d.errback( msg );
+                            }
+                        };
+
+                        function onClientDisconnect( container ) {
+                            this.d.errback( "client disconnected" );
+                        }
+                        function onClientSecurityAlert( container, securityAlert ) {
+                            this.d.errback( "client security alert: " + securityAlert );
+                        }
+
+                        var container = testctn.createContainerForTest(
+                            "hub_publish_badparams",
+                            managedHub,
+                            "pub_badparams_client",
+                            {   Container: {
+                                    onDisconnect: onClientDisconnect,
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this,
+                                    log: this.testManager.log
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+
+                        return this.d;
+                    },
+                    tearDown: function()
+                    {
+                        this.testManager.cleanup();
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "hub unsubscribe",
+                    description: "Test Hub.unsubscribe()",
+                    timeout: 5000,
+                    setUp: function()
+                    {
+                        this.testManager = new TestHubManager();
+                    },
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+
+                        // listen for msg from iframe client
+                        var that = this;
+                        this.testManager.onMsg = function( data ) {
+                            var result = data.r;
+                            var msg = data.m;
+                            if ( result ) {
+                                that.d.callback( true );
+                            } else {
+                                that.d.errback( msg );
+                            }
+                        };
+
+                        function onClientDisconnect( container ) {
+                            this.d.errback( "client disconnected" );
+                        }
+                        function onClientSecurityAlert( container, securityAlert ) {
+                            this.d.errback( "client security alert: " + securityAlert );
+                        }
+
+                        var container = testctn.createContainerForTest(
+                            "hub_unsubscribe",
+                            managedHub,
+                            "unsub_client",
+                            {   Container: {
+                                    onDisconnect: onClientDisconnect,
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this,
+                                    log: this.testManager.log
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+
+                        return this.d;
+                    },
+                    tearDown: function()
+                    {
+                        this.testManager.cleanup();
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "hub getSubscriberData & getSubscriberScope",
+                    description: "Test Hub.getSubscriberData() and Hub.getSubscriberScope()",
+                    timeout: 5000,
+                    setUp: function()
+                    {
+                        this.testManager = new TestHubManager();
+                    },
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+
+                        // listen for msg from iframe client
+                        var that = this;
+                        this.testManager.onMsg = function( data ) {
+                            var result = data.r;
+                            var msg = data.m;
+                            if ( result ) {
+                                that.d.callback( true );
+                            } else {
+                                that.d.errback( msg );
+                            }
+                        };
+
+                        function onClientDisconnect( container ) {
+                            this.d.errback( "client disconnected" );
+                        }
+                        function onClientSecurityAlert( container, securityAlert ) {
+                            this.d.errback( "client security alert: " + securityAlert );
+                        }
+
+                        var container = testctn.createContainerForTest(
+                            "hub_getsubscriberdata",
+                            managedHub,
+                            "subdata_client",
+                            {   Container: {
+                                    onDisconnect: onClientDisconnect,
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this,
+                                    log: this.testManager.log
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+
+                        return this.d;
+                    },
+                    tearDown: function()
+                    {
+                        this.testManager.cleanup();
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "hub isConnected and OpenAjax.hub.Error.Disconnected errors",
+                    description: "Test Hub.isConnected() and that the other Hub functions throw an OpenAjax.hub.Error.Disconnected error when disconnected",
+                    timeout: 5000,
+                    setUp: function()
+                    {
+                        this.testManager = new TestHubManager();
+                    },
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+
+                        // listen for msg from iframe client
+                        var that = this;
+                        this.testManager.onMsg = function( data ) {
+                            var result = data.r;
+                            var msg = data.m;
+                            if ( result ) {
+                                that.d.callback( true );
+                            } else {
+                                that.d.errback( msg );
+                            }
+                        };
+
+                        function onClientSecurityAlert( container, securityAlert ) {
+                            this.d.errback( "client security alert: " + securityAlert );
+                        }
+
+                        var container = testctn.createContainerForTest(
+                            "hub_isconnected",
+                            managedHub,
+                            "isconnected_client",
+                            {   Container: {
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this,
+                                    log: this.testManager.log
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+
+                        return this.d;
+                    },
+                    tearDown: function()
+                    {
+                        this.testManager.cleanup();
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "hub getScope",
+                    description: "Test Hub.getScope()",
+                    timeout: 5000,
+                    setUp: function()
+                    {
+                        this.testManager = new TestHubManager();
+                    },
+                    runTest: function()
+                    {
+                        // ManagedHub.getScope is tested in "test-managedhub_class.html"
+                        if ( containerName == "manager" ) {
+                            return;
+                        }
+                        
+                        this.d = new doh.Deferred();
+
+                        // listen for msg from iframe client
+                        var that = this;
+                        this.testManager.onMsg = function( data ) {
+                            var result = data.r;
+                            var msg = data.m;
+                            if ( result ) {
+                                that._completed( msg );
+                            } else {
+                                that.d.errback( msg );
+                            }
+                        };
+
+                        function onClientDisconnect( container ) {
+                            this.d.errback( "client disconnected" );
+                        }
+                        function onClientSecurityAlert( container, securityAlert ) {
+                            this.d.errback( "client security alert: " + securityAlert );
+                        }
+
+                        var container1 = testctn.createContainerForTest(
+                            "hub_getscope1",
+                            managedHub,
+                            "getscope_client1",
+                            {   Container: {
+                                    onDisconnect: onClientDisconnect,
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this,
+                                    log: this.testManager.log
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+                        var container2 = testctn.createContainerForTest(
+                            "hub_getscope2",
+                            managedHub,
+                            "getscope_client2",
+                            {   Container: {
+                                    onDisconnect: onClientDisconnect,
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this,
+                                    log: this.testManager.log
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+
+                        return this.d;
+                    },
+                    _completed: function( client )
+                    {
+                        this[ client + "_completed" ] = true;
+                        if ( this.client1_completed && this.client2_completed ) {
+                            this.d.callback( true );  // tests successful
+                        }
+                    },
+                    tearDown: function()
+                    {
+                        this.testManager.cleanup();
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "hub getParameters",
+                    description: "Test Hub.getParameters()",
+                    timeout: 5000,
+                    setUp: function()
+                    {
+                        this.testManager = new TestHubManager();
+                    },
+                    runTest: function()
+                    {
+                        // ManagedHub.getParameters is tested in "test-managedhub_class.html"
+                        if ( containerName == "manager" ) {
+                            return;
+                        }
+                        
+                        this.d = new doh.Deferred();
+
+                        // listen for msg from iframe client
+                        var that = this;
+                        this.testManager.onMsg = function( data ) {
+                            var result = data.r;
+                            var msg = data.m;
+                            if ( result ) {
+                                that.d.callback( result );
+                            } else {
+                                that.d.errback( msg );
+                            }
+                        };
+
+                        function onClientDisconnect( container ) {
+                            this.d.errback( "client disconnected" );
+                        }
+                        function onClientSecurityAlert( container, securityAlert ) {
+                            this.d.errback( "client security alert: " + securityAlert );
+                        }
+
+                        var container = testctn.createContainerForTest(
+                            "hub_getparams",
+                            managedHub,
+                            "getparams_client",
+                            {   Container: {
+                                    onDisconnect: onClientDisconnect,
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this,
+                                    log: this.testManager.log
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+
+                        return this.d;
+                    },
+                    tearDown: function()
+                    {
+                        this.testManager.cleanup();
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+                
+                {
+                    name: "publish event queuing",
+                    description: "Test that publish events are delivered in the proper order",
+                    timeout: 8000,
+                    setUp: function()
+                    {
+                        this.testManager = new TestHubManager();
+                        this.hub = new OpenAjax.hub.ManagedHub({
+                            onPublish: function() { return true; },
+                            onSubscribe: this._onSubscribe,
+                            scope: this
+                        });
+                        this.subs = 0;
+                    },
+                    runTest: function()
+                    {
+                        // test not valid for ManagedHub
+                        if ( containerName == "manager" ) {
+                            return;
+                        }
+                        
+                        this.d = new doh.Deferred();
+
+                        // listen for msg from iframe client
+                        var that = this;
+                        this.testManager.onMsg = function( data ) {
+                            var result = data.r;
+                            var msg = data.m;
+                            if ( result ) {
+                                that._completed( msg );
+                            } else {
+                                that.d.errback( msg );
+                            }
+                        };
+
+                        function onClientDisconnect( container ) {
+                            this.d.errback( "client disconnected" );
+                        }
+                        function onClientSecurityAlert( container, securityAlert ) {
+                            this.d.errback( "client security alert: " + securityAlert );
+                        }
+
+                        var container1 = testctn.createContainerForTest(
+                            "pub_queue",
+                            this.hub,
+                            "pub_queue_client1",
+                            {   Container: {
+                                    onDisconnect: onClientDisconnect,
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this,
+                                    log: this.testManager.log
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+                        var container2 = testctn.createContainerForTest(
+                            "pub_queue",
+                            this.hub,
+                            "pub_queue_client2",
+                            {   Container: {
+                                    onDisconnect: onClientDisconnect,
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this,
+                                    log: this.testManager.log
+                                },
+                                IframeContainer: {
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+
+                        return this.d;
+                    },
+                    tearDown: function()
+                    {
+                        this.hub.disconnect();
+                        this.testManager.cleanup();
+                    },
+                    _onSubscribe: function( topic, container )
+                    {
+                        this.subs++;
+                        var that = this;
+                        if ( this.subs == 4 ) {
+                            setTimeout( function() {
+                                    that.testManager.sendMsg( "publish.pub_queue_client1" );
+                                }, 0
+                            );
+                        }
+                        return true;
+                    },
+                    _completed: function( client )
+                    {
+                        this[ client + "_completed" ] = true;
+                        if ( this.pub_queue_client1_completed && this.pub_queue_client2_completed ) {
+                            this.d.callback( true ); // test succeeded
+                        }
+                    }
+                }
+                
+            ],
+    
+            // group setup
+            function() {
+                managedHub = new OpenAjax.hub.ManagedHub({
+                        onPublish: function() { return true; },
+                        onSubscribe: function() { return true; },
+                        log: function( msg ) {
+                            console.log( msg );
+                        }
+        		});
+                doh.assertTrue( managedHub );
+            },
+    
+            // group tear down
+            function() {
+                managedHub.disconnect();
+            }
+        );
+    </script>
+</head>
+<body>
+    <div id="iframe_widget"></div>
+</body>
+</html>

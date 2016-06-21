@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!DOCTYPE plugin-package PUBLIC "-//Liferay//DTD Plugin Package 6.2.0//EN" "http://www.liferay.com/dtd/liferay-plugin-package_6_2_0.dtd">
+
+<plugin-package>
+	<name><![CDATA[Sync Connector]]> Web</name>
+	<module-id>liferay/sync-web/6.2.0.6/war</module-id>
+	<recommended-deployment-context>sync-web</recommended-deployment-context>
+	<required-deployment-contexts></required-deployment-contexts>
+	<types>
+		<type>web</type>
+	</types>
+	<tags>
+		<tag>document library</tag>
+		<tag>sync</tag>
+	</tags>
+	<short-description><![CDATA[]]></short-description>
+	<long-description><![CDATA[The Sync Connector app lets users connect to their portals from the Liferay Sync desktop and mobile clients. It also lets administrators control how these clients interact with their portal. Once installed, the Sync Connector app provides the portal services required by the clients. No additional portal configuration is required. However, portal administrators can use the Sync Admin portlet installed with this app to control what sites are available for Sync. They can also use this portlet to disable Sync across the portal.<br /><br />After installing, the Sync Admin portlet is available in the Control Panel???s Configuration section.<br /><br />Please visit http://www.liferay.com/products/liferay-sync/features for more information on downloading the Liferay Sync desktop and mobile clients. Liferay Sync is compatible with Windows, Mac OS, iOS, and Android. The Sync Connector app requires version 3.0+ of the Sync desktop or mobile client.]]></long-description>
+	<change-log><![CDATA[]]></change-log>
+	<page-url>http://www.liferay.com</page-url>
+	<author><![CDATA[Liferay, Inc.]]></author>
+	<licenses>
+		<license osi-approved="true">LGPL</license>
+	</licenses>
+	<liferay-versions>
+		<liferay-version>6.2.0+</liferay-version>
+	</liferay-versions>
+</plugin-package>

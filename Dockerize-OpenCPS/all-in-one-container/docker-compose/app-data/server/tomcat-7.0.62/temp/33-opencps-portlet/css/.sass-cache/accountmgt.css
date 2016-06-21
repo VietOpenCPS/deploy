@@ -1,0 +1,20 @@
+.opencps.accountmgt.fm-registration.header {
+  clear: both;
+  display: block;
+  height: 30px;
+  position: relative; }
+
+.opencps.accountmgt.fm-registration.header .register-label {
+  clear: right;
+  display: inline-block;
+  font-weight: bold;
+  height: 30px;
+  line-height: 40px; }
+
+.opencps.accountmgt.fm-registration.header .switcher-btn {
+  bottom: 0;
+  clear: left;
+  display: inline-block;
+  position: absolute;
+  right: 0; }
+

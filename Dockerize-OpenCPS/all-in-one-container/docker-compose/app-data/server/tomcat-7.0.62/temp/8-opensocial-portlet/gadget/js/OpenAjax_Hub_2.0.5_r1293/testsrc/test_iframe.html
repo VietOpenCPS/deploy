@@ -1,0 +1,165 @@
+<html>
+<head>
+    <title> Iframe-specific Tests </title>
+    
+    <script src="../dojo/dojo/dojo.js" djConfig="isDebug: true"></script>
+    
+    <script src="config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="1";</script>
+    <script src="util/loadHub.js"></script>
+    <script src="util/test_hub.js"></script>
+    <script src="util/testHelper.js"></script>
+    <script src="ifr/test_iframe_container.js"></script>
+    
+    <script>
+        dojo.require( "doh.runner" );
+        dojo.addOnLoad( function() {
+            doh.run();
+        });
+        
+        var managedHub = null;
+        
+        doh.registerGroup( "Iframe tests",
+            // tests
+            [
+                {
+                    name: "intermediate Hub",
+                    description: "Test the situation where there is an intermediate Hub, " +
+                            "which marshalls between the parent and the client.  This is " +
+                            "mainly a test for IframeContainer and IframeHubClient living" +
+                            "in the same page/JS-contenxt.",
+                    timeout: 10000,
+                    setUp: function()
+                    {
+                        this.testManager = new TestHubManager();
+                        this.sid1 = managedHub.subscribe( "intermediary.foo", this._onFoo, this );
+                        this.sid2 = managedHub.subscribe( "intermediary.baz", this._onBaz, this );
+                    },
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+                        
+                        // listen for msg from client
+                        var that = this;
+                        this.testManager.onMsg = function( data ) {
+                            var result = data.r;
+                            var msg = data.m;
+                            if ( ! result ) {
+                                that.d.errback( msg );
+                            }
+                        };
+                        
+                        function onClientSecurityAlert( container, securityAlert ) {
+                            this.d.errback( "security alert: " + securityAlert );
+                        }
+                        
+                        testHelper.setConfigFromURLParam();
+                        
+                        var container = TestIframeContainer.createContainerForTest(
+                            "iframe_intermediary1",
+                            managedHub,
+                            "intermediary_client",
+                            {   Container: {
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this,
+                                    log: this.testManager.log
+                                },
+                                IframeContainer: {
+                                    uri: COMPONENT1_DOMAIN + HUB20_PATH + "/testsrc/ifr/iframe_intermediary1.html?clientFile=iframe_intermediary2.html&config="+testHelper.config,
+                                    parent: document.getElementById( "iframe_widget" )
+                                }
+                            }
+                        );
+                        
+                        return this.d;
+                    },
+                    tearDown: function()
+                    {
+                        managedHub.unsubscribe( this.sid1 );
+                        managedHub.unsubscribe( this.sid2 );
+                        this.testManager.cleanup();
+                    },
+                    _onFoo: function( topic, data )
+                    {
+                        this.d.getTestErrback( function() {
+                            doh.assertEqual( "intermediary.foo", topic );
+                            doh.assertEqual( "hello", data );
+                        })();
+                        
+                        managedHub.publish( "intermediary.bar", "goodbye" );
+                    },
+                    _onBaz: function( topic, data )
+                    {
+                        this.d.getTestCallback( function() {
+                            doh.assertEqual( "intermediary.baz", topic );
+                            doh.assertEqual( "see you later", data );
+                            // test succeeded
+                        })();
+                    }
+                },
+                
+                ////////////////////////////////////////////////////////////////
+
+                {
+                    name: "intermediate Hub timeout",
+                    description: "Test the intermediate hub properly registers a load timeout",
+                    timeout: 10000,
+                    runTest: function()
+                    {
+                        this.d = new doh.Deferred();
+                        
+                        function onClientSecurityAlert( source, securityAlert ) {
+                            this.d.getTestCallback( function() {
+                                doh.assertEqual( container, source );
+                                doh.assertEqual( OpenAjax.hub.SecurityAlert.LoadTimeout, securityAlert );
+                                // test succeeded
+                            })();
+                        }
+                        
+                        testHelper.setConfigFromURLParam();
+                        
+                        // load the intermediate hub page, but pass along an
+                        // invalid client page ("clientFile" param)
+                        var container = TestIframeContainer.createContainerForTest(
+                            "iframe_intermediary1",
+                            managedHub,
+                            "intermediary_timeout_client",
+                            {   Container: {
+                                    onSecurityAlert: onClientSecurityAlert,
+                                    scope: this
+                                },
+                                IframeContainer: {
+                                    uri: COMPONENT1_DOMAIN + HUB20_PATH + "/testsrc/ifr/iframe_intermediary1.html?clientFile=this_does_not_exist.html&config="+testHelper.config,
+                                    parent: document.getElementById( "iframe_widget" ),
+                                    timeout: 5000
+                                }
+                            }
+                        );
+                        
+                        return this.d;
+                    }
+                }
+            ],
+    
+            // group setup
+            function() {
+                managedHub = new OpenAjax.hub.ManagedHub({
+                        onPublish: function() { return true; },
+                        onSubscribe: function() { return true; },
+                        log: function( msg ) {
+                            console.log( msg );
+                        }
+        		});
+            },
+    
+            // group tear down
+            function() {
+                managedHub.disconnect();
+            }
+        );
+    </script>
+</head>
+<body>
+    <div id="iframe_widget"></div>
+</body>
+</html>

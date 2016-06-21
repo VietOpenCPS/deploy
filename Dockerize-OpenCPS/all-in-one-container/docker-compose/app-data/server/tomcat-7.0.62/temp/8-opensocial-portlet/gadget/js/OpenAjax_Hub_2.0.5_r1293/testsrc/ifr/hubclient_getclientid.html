@@ -1,0 +1,44 @@
+<html>
+<head>
+    <title>Iframe Client</title>
+    
+    <script src="../config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="2";</script>
+    <script src="../util/loadHub.js"></script>
+    
+    <script src="../util/test_hub.js"></script>
+
+    <script type="text/javascript">
+        var hubClient = null;
+        
+        function init()
+        {
+            new TestHubClient( "iframe", function( test ) {
+
+                function onHubClientSecurityAlert( source, alertType ) {
+                    test.errback( "security alert in inline client: " + alertType );
+                }
+
+                hubClient = new OpenAjax.hub.IframeHubClient({
+                      HubClient: {
+                          onSecurityAlert: onHubClientSecurityAlert,
+                          log: test.log
+                      }
+                });
+
+                hubClient.connect();
+                
+                try {
+                    test.sendMsg( hubClient.getClientID() );
+                } catch( e ) {
+                    test.errback( e );
+                }
+                
+            });
+        }
+    </script>
+</head>
+
+<body onload="init();">
+</body>
+</html>

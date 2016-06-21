@@ -1,0 +1,92 @@
+<html>
+<head>
+    <title>Iframe Client</title>
+    
+    <script src="../config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="2";</script>
+    <script src="../util/loadHub.js"></script>
+    
+    <script src="../util/test_hub.js"></script>
+    <script src="../util/testHelper.js"></script>
+
+    <script type="text/javascript">
+        var hubClient;
+        var test;
+        
+        function init()
+        {
+            new TestHubClient( "iframe", function( testHubClient ) {
+                
+                test = testHubClient;
+                
+                hubClient = new OpenAjax.hub.IframeHubClient({
+                        HubClient: {
+                            onSecurityAlert: function() {},
+                            log: test.log
+                        }
+                });
+                hubClient.connect( onHubClientConnect );
+                
+            });
+        }
+        
+        function onHubClientConnect()
+        {
+            // subscribe with no scope and no subscriberData
+            hubClient.subscribe( "hub.subscribe.ondata.null",
+                    function( topic, data, subscriberData ) {
+                        test.assertEqual( "hub.subscribe.ondata.null", topic );
+                        test.assertEqual( null, data );
+                        test.assertTrue( typeof subscriberData === "undefined" || subscriberData == null );
+                        test.callback( true, "test1" );
+                    }
+            );
+
+            // subscribe with no scope and a String subscriberData
+            var subData1 = "This is a string!";
+            hubClient.subscribe( "hub.subscribe.ondata.str",
+                    function( topic, data, subscriberData ) {
+                        test.assertEqual( "hub.subscribe.ondata.str", topic );
+                        test.assertTrue( typeof data == "string" );
+                        test.assertEqual( "The quick brown fox jumps over the lazy dog.", data );
+                        test.assertEqual( subData1, subscriberData );
+                        test.callback( true, "test2" );
+                    },
+                    null,
+                    null,
+                    subData1
+            );
+
+            // subscribe with scope and an Object subscriberData
+            var subData2 = { height: "200px", margin: 10 };
+            function MyObject() {
+                this.onData = function( topic, data, subscriberData ) {
+                    test.assertEqual( "hub.subscribe.ondata.obj", topic );
+                    test.assertTrue( typeof data == "object" );
+                    test.assertEqual( { foo: "bar", index: 201 }, data );
+                    test.assertEqual( subData2, subscriberData );
+                    test.callback( true, "test3" );
+                };
+            }
+            var myObject = new MyObject();
+            hubClient.subscribe( "hub.subscribe.ondata.obj",
+                    myObject.onData,
+                    myObject,
+                    null,
+                    subData2
+            );
+
+            // subscribe to topic that should be disallowed -- onData should not be
+            // called
+            hubClient.subscribe( "hub.subscribe.ondata.xxxx",
+                    function( topic, data, subscriberData ) {
+                        test.errback( "onData should not be called" );
+                    }
+            );
+        }
+    </script>
+</head>
+
+<body onload="init();">
+</body>
+</html>

@@ -1,0 +1,59 @@
+<html>
+<head>
+    <title>Iframe Client</title>
+    
+    <script src="../config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="2";</script>
+    <script src="../util/loadHub.js"></script>
+    
+    <script src="../util/test_hub.js"></script>
+    <script src="../util/testHelper.js"></script>
+
+    <script type="text/javascript">
+        var hubClient;
+        var myObject;
+        
+        function init()
+        {
+            new TestHubClient( "iframe", function( test ) {
+
+                function onHubClientSecurityAlert( source, alertType ) {
+                    test.errback( "security alert in iframe client: " + alertType );
+                }
+            
+                var hubClient = new OpenAjax.hub.IframeHubClient({
+                      HubClient: {
+                          onSecurityAlert: onHubClientSecurityAlert,
+                          log: test.log
+                      }
+                });
+                
+                hubClient.connect( function( client, success, error ) {
+                    test.assertTrue( success );
+                    
+                    // now call connect() again -- should throw a Duplicate error
+                    setTimeout(
+                        function() {
+                            testHelper.assertErrorMsg(
+                                OpenAjax.hub.Error.Duplicate,                           // expected error msg
+                                hubClient,                                              // scope
+                                "connect",                                              // function name
+                                null,                                                   // args
+                                "call HubClient.connect() while already connected",
+                                test
+                            );
+
+                            test.callback( true );
+                        },
+                        0
+                    );
+                });
+
+            });
+        }
+    </script>
+</head>
+
+<body onload="init();">
+</body>
+</html>

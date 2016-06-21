@@ -1,0 +1,31 @@
+<html>
+<head>
+    <title>Iframe Client</title>
+    
+    <script src="../config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="2";</script>
+    <script src="../util/loadHub.js"></script>
+    
+    <script src="../util/test_hub.js"></script>
+    <script src="../util/testHelper.js"></script>
+    
+    <script type="text/javascript">
+        function init()
+        {
+            var hubClient = new OpenAjax.hub.IframeHubClient({
+                    HubClient: {
+                        onSecurityAlert: function() {}
+                    }
+            });
+            
+            // connect to managed hub, then disconnect
+            hubClient.connect( function() {
+                hubClient.disconnect();
+            });
+        }
+    </script>
+</head>
+
+<body onload="init();">
+</body>
+</html>

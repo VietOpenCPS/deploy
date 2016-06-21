@@ -1,0 +1,97 @@
+<html>
+<head>
+    <title>Iframe Client</title>
+    
+    <script src="../config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="2";</script>
+    <script src="../util/loadHub.js"></script>
+    
+    <script src="../util/test_hub.js"></script>
+    <script src="../util/testHelper.js"></script>
+
+    <script type="text/javascript">
+        var hubClient;
+        var test;
+        
+        function init()
+        {
+            new TestHubClient( "iframe", function( testHubClient ) {
+                
+                test = testHubClient;
+                
+                function onHubClientSecurityAlert( source, alertType ) {
+                    test.errback( "security alert in iframe client: " + alertType );
+                }
+            
+                hubClient = new OpenAjax.hub.IframeHubClient({
+                      HubClient: {
+                          onSecurityAlert: onHubClientSecurityAlert,
+                          log: test.log
+                      }
+                });
+                
+                hubClient.connect( onHubClientConnect );
+                
+                test.onMsg = onTestMsg;
+
+            });
+        }
+        
+        function onHubClientConnect( item, success, error )
+        {
+            test.assertTrue( success );
+            
+            var id = hubClient.getClientID();
+            hubClient.subscribe( "test.disconnect",
+                    function( topic, data ) {               // onData
+                        test.sendMsg({
+                            r: true,
+                            i: id,
+                            m: data
+                        });
+                    },
+                    null,                                   // scope
+                    function( item, success, errCode ) {    // onComplete
+                        test.assertTrue( success );
+                        test.sendMsg({
+                            r: true,
+                            i: id,
+                            m: "subscribed"
+                        });
+                    }
+            );
+        }
+        
+        function onTestMsg( data )
+        {
+            switch ( data ) {
+                case "phase3":
+                    hubClient.disconnect(
+                        function( item, success, errCode ) {    // onComplete
+                            test.assertTrue( success );
+                            hubClient.connect( onHubClientReconnect );
+                        }
+                    );
+                    break;
+            }
+        }
+        
+        // client connects after disconnect
+        function onHubClientReconnect( item, success, error )
+        {
+            // At this point, since the client has disconnected, there are no
+            // subscriptions associated with this client.
+            
+            // Let test know where we are
+            test.sendMsg({
+                r: true,
+                i: hubClient.getClientID(),
+                m: "reconnected"
+            });
+        }
+    </script>
+</head>
+
+<body onload="init();">
+</body>
+</html>

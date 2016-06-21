@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!DOCTYPE plugin-package PUBLIC "-//Liferay//DTD Plugin Package 6.2.0//EN" "http://www.liferay.com/dtd/liferay-plugin-package_6_2_0.dtd">
+
+<plugin-package>
+	<name><![CDATA[Kaleo Workflow]]> Web</name>
+	<module-id>liferay/kaleo-web/6.2.0.3/war</module-id>
+	<recommended-deployment-context>kaleo-web</recommended-deployment-context>
+	<required-deployment-contexts></required-deployment-contexts>
+	<types>
+		<type>web</type>
+	</types>
+	<tags>
+		<tag>bi</tag>
+		<tag>business intelligence</tag>
+		<tag>designer</tag>
+		<tag>kaleo</tag>
+		<tag>workflow</tag>
+	</tags>
+	<short-description><![CDATA[]]></short-description>
+	<long-description><![CDATA[This app provides the Kaleo Workflow engine, for use with Liferay Portal. In Greek, Kaleo means "called ones," which is appropriate for a workflow engine that calls users to participate in a process that has been designed for them. Kaleo workflow allows a user to define any number of simple to complex business processes/workflows, deploy them, and manage them through a portal interface. Those processes have knowledge of users, groups, and roles. You don't have to write a single line of code to accomplish this: all you have to do is create a single XML document. And if you're a Liferay EE customer, you get a graphical workflow designer, which gives you a point and click interface to create workflows. Simple workflows can be managed using the default configuration and GUI tools, while more complex workflows can be created to meet the workflow management needs of almost any portal. Consult the "Workflow" section of the Liferay User Guide for details on administering this service. The Liferay User Guide can be found at http://liferay.com/documentation.<br /><br />This app installs as a Liferay service.]]></long-description>
+	<change-log><![CDATA[]]></change-log>
+	<page-url>http://www.liferay.com</page-url>
+	<author><![CDATA[Liferay, Inc.]]></author>
+	<licenses>
+		<license osi-approved="true">LGPL</license>
+	</licenses>
+	<liferay-versions>
+		<liferay-version>6.2.0+</liferay-version>
+	</liferay-versions>
+</plugin-package>

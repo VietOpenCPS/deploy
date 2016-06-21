@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 6.2.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_6_2_0.dtd">
+
+<service-builder package-path="com.liferay.sync" auto-namespace-tables="false">
+	<namespace>Sync</namespace>
+	<entity name="SyncDLFileVersionDiff" local-service="true" remote-service="false">
+		<!-- PK fields -->
+		<column name="syncDLFileVersionDiffId" type="long" primary="true"></column>
+		<!-- Other fields -->
+		<column name="fileEntryId" type="long"></column>
+		<column name="sourceFileVersionId" type="long"></column>
+		<column name="targetFileVersionId" type="long"></column>
+		<column name="dataFileEntryId" type="long"></column>
+		<column name="size" type="long"></column>
+		<column name="expirationDate" type="Date"></column>
+		<!-- Finder methods -->
+		<finder name="FileEntryId" return-type="Collection">
+			<finder-column name="fileEntryId"></finder-column>
+		</finder>
+		<finder name="ExpirationDate" return-type="Collection">
+			<finder-column name="expirationDate" comparator="&lt;"></finder-column>
+		</finder>
+		<finder name="F_S_T" return-type="SyncDLFileVersionDiff" unique="true">
+			<finder-column name="fileEntryId"></finder-column>
+			<finder-column name="sourceFileVersionId"></finder-column>
+			<finder-column name="targetFileVersionId"></finder-column>
+		</finder>
+		<!-- References -->
+		<reference package-path="com.liferay.portal" entity="Company"></reference>
+		<reference package-path="com.liferay.portlet.documentlibrary" entity="DLApp"></reference>
+	</entity>
+	<entity name="SyncDLObject" local-service="true" remote-service="true">
+		<!-- PK fields -->
+		<column name="syncDLObjectId" type="long" primary="true"></column>
+		<!-- Audit fields -->
+		<column name="companyId" type="long"></column>
+		<column name="userId" type="long"></column>
+		<column name="userName" type="String"></column>
+		<column name="createTime" type="long"></column>
+		<column name="modifiedTime" type="long"></column>
+		<!-- Other fields -->
+		<column name="repositoryId" type="long"></column>
+		<column name="parentFolderId" type="long"></column>
+		<column name="treePath" type="String" json-enabled="false"></column>
+		<column name="name" type="String"></column>
+		<column name="extension" type="String"></column>
+		<column name="mimeType" type="String"></column>
+		<column name="description" type="String"></column>
+		<column name="changeLog" type="String"></column>
+		<column name="extraSettings" type="String"></column>
+		<column name="version" type="String"></column>
+		<column name="versionId" type="long"></column>
+		<column name="size" type="long"></column>
+		<column name="checksum" type="String"></column>
+		<column name="event" type="String"></column>
+		<column name="lastPermissionChangeDate" type="Date" json-enabled="false"></column>
+		<column name="lockExpirationDate" type="Date"></column>
+		<column name="lockUserId" type="long"></column>
+		<column name="lockUserName" type="String"></column>
+		<column name="type" type="String"></column>
+		<column name="typePK" type="long"></column>
+		<column name="typeUuid" type="String"></column>
+		<!-- Order -->
+		<order by="asc">
+			<order-column name="modifiedTime"></order-column>
+			<order-column name="repositoryId"></order-column>
+		</order>
+		<!-- Finder methods -->
+		<finder name="M_R" return-type="Collection">
+			<finder-column name="modifiedTime" comparator="&gt;"></finder-column>
+			<finder-column name="repositoryId"></finder-column>
+		</finder>
+		<finder name="R_P" return-type="Collection">
+			<finder-column name="repositoryId"></finder-column>
+			<finder-column name="parentFolderId"></finder-column>
+		</finder>
+		<finder name="R_T" return-type="Collection">
+			<finder-column name="repositoryId"></finder-column>
+			<finder-column name="type"></finder-column>
+		</finder>
+		<finder name="V_T" return-type="Collection">
+			<finder-column name="version"></finder-column>
+			<finder-column name="type"></finder-column>
+		</finder>
+		<finder name="T_T" return-type="SyncDLObject" unique="true">
+			<finder-column name="type"></finder-column>
+			<finder-column name="typePK"></finder-column>
+		</finder>
+		<finder name="M_R_NotE" return-type="Collection">
+			<finder-column name="modifiedTime" comparator="&gt;"></finder-column>
+			<finder-column name="repositoryId"></finder-column>
+			<finder-column name="event" arrayable-operator="AND" comparator="!="></finder-column>
+		</finder>
+		<finder name="R_P_T" return-type="Collection">
+			<finder-column name="repositoryId"></finder-column>
+			<finder-column name="parentFolderId"></finder-column>
+			<finder-column name="type" arrayable-operator="OR"></finder-column>
+		</finder>
+		<!-- References -->
+		<reference package-path="com.liferay.portal" entity="Group"></reference>
+		<reference package-path="com.liferay.portal" entity="Organization"></reference>
+		<reference package-path="com.liferay.portal" entity="Repository"></reference>
+		<reference package-path="com.liferay.portlet.documentlibrary" entity="DLApp"></reference>
+		<reference package-path="com.liferay.portlet.documentlibrary" entity="DLFileEntry"></reference>
+		<reference package-path="com.liferay.portlet.documentlibrary" entity="DLFileVersion"></reference>
+		<!-- Transactions -->
+		<tx-required>getFileDeltaAsStream</tx-required>
+	</entity>
+	<entity name="SyncPreferences" local-service="true" remote-service="false" tx-manager="false"></entity>
+	<exceptions>
+		<exception>SyncDLObjectChecksum</exception>
+	</exceptions>
+</service-builder>

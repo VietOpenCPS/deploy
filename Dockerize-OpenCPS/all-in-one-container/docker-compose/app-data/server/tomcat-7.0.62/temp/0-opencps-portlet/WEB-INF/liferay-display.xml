@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!DOCTYPE display PUBLIC "-//Liferay//DTD Display 6.2.0//EN" "http://www.liferay.com/dtd/liferay-display_6_2_0.dtd">
+
+<display>
+	<category name="org.opencps.backend">
+		<portlet id="1"></portlet>
+	</category>
+	<category name="org.opencps.backoffice">
+		<portlet id="2"></portlet>
+		<portlet id="4"></portlet>
+		<portlet id="8"></portlet>
+		<portlet id="9"></portlet>
+		<portlet id="12"></portlet>
+		<portlet id="15"></portlet>
+		<portlet id="16"></portlet>
+		<portlet id="17"></portlet>
+		<portlet id="18"></portlet>
+	</category>
+	<category name="org.opencps.frontoffice">
+		<portlet id="3"></portlet>
+		<portlet id="5"></portlet>
+		<portlet id="6"></portlet>
+		<portlet id="10"></portlet>
+		<portlet id="11"></portlet>
+		<portlet id="13"></portlet>
+		<portlet id="14"></portlet>
+		<portlet id="19"></portlet>
+	</category>
+</display>

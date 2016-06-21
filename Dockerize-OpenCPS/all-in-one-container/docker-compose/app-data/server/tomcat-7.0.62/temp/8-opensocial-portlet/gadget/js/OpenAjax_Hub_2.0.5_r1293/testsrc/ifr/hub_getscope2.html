@@ -1,0 +1,43 @@
+<html>
+<head>
+    <title>Iframe Client</title>
+    
+    <script src="../config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="2";</script>
+    <script src="../util/loadHub.js"></script>
+    
+    <script src="../util/test_hub.js"></script>
+    <script src="../util/testHelper.js"></script>
+    
+    <script type="text/javascript">
+        function init()
+        {
+            new TestHubClient( "iframe", function( test ) {
+                
+                // create a client with a scope
+                function MyObject() {
+                    this.onComplete = function( item, success, error ) {
+                        test.assertTrue( success );
+                        test.assertEqual( myObject, hubClient.getScope() );
+                        test.callback( true, "client2" );
+                    }
+                }
+                var myObject = new MyObject();
+
+                var hubClient = new OpenAjax.hub.IframeHubClient({
+                        HubClient: {
+                            onSecurityAlert: function() {},
+                            scope: myObject,
+                            log: test.log
+                        }
+                });
+                hubClient.connect( myObject.onComplete, myObject );
+                
+            });
+        }
+    </script>
+</head>
+
+<body onload="init();">
+</body>
+</html>

@@ -1,0 +1,77 @@
+<html>
+<head>
+    <title>Iframe Client</title>
+    
+    <script src="../config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="2";</script>
+    <script src="../util/loadHub.js"></script>
+    
+    <script src="../util/test_hub.js"></script>
+
+    <script type="text/javascript">
+        var hubClient = null;
+        
+        function init()
+        {
+            new TestHubClient( "iframe", function( test ) {
+
+                var connectedOnce = false;
+
+                function onHubClientConnect( client, success, error ) {
+                    test.assertTrue( success, "hub client connect failed" );
+
+                    if ( ! connectedOnce ) {
+                        connectedOnce = true;
+                        setTimeout(
+                            function() {
+                                // now try to call disconnect
+                                try {
+                                    hubClient.disconnect( onHubClientDisconnect );
+                                } catch( e ) {
+                                    test.errback( "iframe hub client disconnect failed: " + e );
+                                }
+                            },
+                            0
+                        );
+                    } else {
+                        // connecting for a second time...
+                        try {
+                            hubClient.publish( "client.reconnect", "after_reconnect" );
+                        } catch( e ) {}
+                    }
+                }
+                function onHubClientDisconnect( client, success, error ) {
+                    try {
+                        hubClient.publish( "client.reconnect", "after_disconnect" );
+                    } catch( e ) {}
+
+                    setTimeout(
+                        function() {
+                            try {
+                                hubClient.connect( onHubClientConnect );
+                            } catch( e ) {
+                                test.errback( "iframe hub client reconnect failed: " + e );
+                            }
+                        }
+                    );
+                }
+                function onHubClientSecurityAlert( source, alertType ) {
+                    test.errback( "security alert in iframe client: " + alertType );
+                }
+                
+                hubClient = new OpenAjax.hub.IframeHubClient({
+                      HubClient: {
+                          onSecurityAlert: onHubClientSecurityAlert,
+                          log: test.log
+                      }
+                });
+                hubClient.connect( onHubClientConnect );
+                
+            });
+        }
+    </script>
+</head>
+
+<body onload="init();">
+</body>
+</html>

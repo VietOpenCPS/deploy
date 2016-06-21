@@ -1,0 +1,85 @@
+<html>
+<head>
+    <title>Iframe Client</title>
+    
+	<script src="../../dojo/dojo/dojo.js"></script>
+	<script type="text/javascript">
+		var TestURLParams = {};
+		TestURLParams.testname = null;
+		TestURLParams.testscriptfile = null;
+		TestURLParams.testobjname = null;
+		TestURLParams.getTestURLParams = function () {
+			var qstr = window.location.search.substr(1);
+			if(qstr.length){
+				var qparts = qstr.split("&");
+				for(var x=0; x<qparts.length; x++){
+					var tp = qparts[x].split("=");
+					if (tp[0] === "testname") {
+						TestURLParams.testname = tp[1];
+					} else if (tp[0] === "testscriptfile") {
+						TestURLParams.testscriptfile = tp[1];
+					} else if (tp[0] === "testobjname") {
+						TestURLParams.testobjname = tp[1];
+					}
+				}
+			}
+			document.write("<scr"+"ipt type='text/javascript' src='../pubsubtests/"+TestURLParams.testscriptfile+"'></scr"+"ipt>");
+		}();
+	</script>
+    <script src="../config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="2";</script>
+    <script src="../util/loadHub.js"></script>
+    <script src="../util/test_hub.js"></script>
+
+    <script type="text/javascript">
+        var hubClient = null;
+
+        function init()
+        {
+            new TestHubClient( "iframe", function( test ) {
+
+                test.onMsg = function( data ) {
+					var parts = data.split(":");
+					var msg = parts[0];
+					var param = parts[1];
+                    switch( msg ) {
+                        case "runscript":
+                            runscript(TestURLParams.testobjname);
+                            break;
+                    }
+                };
+
+                var hubClient;
+
+                function startTest() {
+                    hubClient = new OpenAjax.hub.IframeHubClient({
+                          HubClient: {
+                              onSecurityAlert: function() {},
+                              log: test.log
+                          }
+                    });
+					test.hubClient = hubClient;
+
+                    hubClient.connect( function( item, success, error ) {
+						test.sendMsg( [ "start" ] );
+                    });
+                }
+
+                function runscript(scriptname) {
+					// Invoke the "run" function from the global object named in string "scriptname"
+					var func = window[scriptname]["run"];
+					func.call(test, 0);
+
+                }
+
+                // start tests
+                startTest();
+                
+            });
+        }
+    </script>
+</head>
+
+<body onload="init();">
+</body>
+</html>

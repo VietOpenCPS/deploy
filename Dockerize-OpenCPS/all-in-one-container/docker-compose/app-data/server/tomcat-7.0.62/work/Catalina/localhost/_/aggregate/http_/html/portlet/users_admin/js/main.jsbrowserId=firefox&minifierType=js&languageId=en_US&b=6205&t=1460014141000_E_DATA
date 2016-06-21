@@ -1,0 +1,1 @@
+AUI.add("liferay-users-admin",function(a){var b={getCountries:function(c){Liferay.Service("/country/get-countries",{active:true},c)},getRegions:function(d,c){Liferay.Service("/region/get-regions",{countryId:Number(c),active:true},d)}};Liferay.UsersAdmin={Addresses:b}});

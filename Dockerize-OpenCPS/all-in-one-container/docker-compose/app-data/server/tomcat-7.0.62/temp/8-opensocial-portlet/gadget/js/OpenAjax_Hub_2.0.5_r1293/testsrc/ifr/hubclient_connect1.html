@@ -1,0 +1,50 @@
+<html>
+<head>
+    <title>Iframe Client</title>
+    
+    <script src="../config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="2";</script>
+    <script src="../util/loadHub.js"></script>
+    
+    <script src="../util/test_hub.js"></script>
+
+    <script type="text/javascript">
+        var hubClient = null;
+        
+        function init()
+        {
+            new TestHubClient( "iframe", function( test ) {
+
+                function onHubClientConnect( client, success, error ) {
+                    if ( success ) {
+                        test.assertEqual( hubClient, client );
+                        test.assertEqual( window, this );
+                        test.callback( true, "connect1" );  // test succeeded
+                    } else {
+                        test.callback( false, error );
+                    }
+                }
+                function onHubClientSecurityAlert( source, alertType ) {
+                    test.errback( "security alert in iframe client: " + alertType );
+                }
+                
+                try {
+                    hubClient = new OpenAjax.hub.IframeHubClient({
+                          HubClient: {
+                              onSecurityAlert: onHubClientSecurityAlert,
+                              log: test.log
+                          }
+                    });
+                    hubClient.connect( onHubClientConnect );
+                } catch( e ) {
+                    test.errback( new Error( "iframe hub client init and connect failed: " + e ) );
+                }
+                
+            });
+        }
+    </script>
+</head>
+
+<body onload="init();">
+</body>
+</html>

@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!DOCTYPE struts-config PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 1.2//EN" "http://jakarta.apache.org/struts/dtds/struts-config_1_2.dtd">
+
+<struts-config>
+	<!-- Action Mappings -->
+	<action-mappings>
+		<action path="/email" type="org.opencps.struts.action.VerifyEmailAddressAction">
+			<forward name="verify.email.success" path="verify.email.success"></forward>
+			<forward name="verify.email.error" path="verify.email.error"></forward>
+		</action>
+	</action-mappings>
+	<plug-in className="org.apache.struts.tiles.TilesPlugin">
+		<set-property property="definitions-config" value="/WEB-INF/tiles-defs.xml"></set-property>
+		<set-property property="moduleAware" value="true"></set-property>
+	</plug-in>
+</struts-config>

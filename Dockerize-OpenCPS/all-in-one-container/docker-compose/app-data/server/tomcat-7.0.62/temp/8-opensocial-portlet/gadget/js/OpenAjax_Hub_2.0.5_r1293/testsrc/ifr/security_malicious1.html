@@ -1,0 +1,137 @@
+<html>
+<head>
+    <title>Malicious Client</title>
+    
+    <script type="text/javascript">
+        var type;
+        if ( window.postMessage ) {
+            type = "PM";
+        } else if ( window.ActiveXObject ) {
+            type = "NIX";
+        } else {
+            type = "FIM";
+        }
+        
+        // Save nix channel object for later use, since the NIX code sets
+        // window.opener to null.
+        if ( type == "NIX" ) {
+            var nix_channel = window.opener; 
+        }
+    </script>
+    
+    <script src="../config.js"></script>
+    <script type="text/javascript">loadHub_dirDepth="2";</script>
+    <script src="../util/loadHub.js"></script>
+    
+    <script src="../util/test_hub.js"></script>
+
+    <script type="text/javascript">
+        function init()
+        {
+            new TestHubClient( "iframe", function( test ) {
+
+                var hubClient = new OpenAjax.hub.IframeHubClient({
+                      HubClient: {
+                          onSecurityAlert: function() {}
+                      }
+                });
+                hubClient.connect( function() {
+                    
+                    var msg = OpenAjax.gadgets.util.getUrlParameters().msg;
+                    
+                    switch ( type ) {
+                        
+                    /******************
+                     *  postMessage
+                     *  
+                     *  'msg' is a full message package sent by sibling client.
+                     *  Using that, we just change it to a publish event and add
+                     *  a fake payload. The postMessage impl should notice that
+                     *  the message is coming from a different domain.
+                     ******************/
+    
+                    case "PM":
+                        // use given message to forge a new 'publish' message to parent
+                        msg = JSON.parse( msg );
+                        
+                        // change message, but keep ID ('i') and security token ('t')
+                        msg.m = "pub";
+                        msg.p = {
+                            t: "test.forged_msg",
+                            d: "I'm bad!"
+                        };
+                        
+                        window.parent.postMessage( JSON.stringify( msg ), "*" );
+                        break;
+                    
+                    /******************
+                     *  NIX
+                     *  
+                     *  'msg' is the sibling client's ID. A fake publish message
+                     *  is sent to the parent, using the sibling client's ID.
+                     *  The NIX impl should notice that the security token does
+                     *  not match what is expected.
+                     ******************/
+    
+                    case "NIX":
+                        var newMsg = {
+                            m: "pub",
+                            i: msg,
+                            t: (0x7fffffff * Math.random()) | 0,
+                            p: {
+                                t: "test.forged_msg",
+                                d: "I'm bad!"
+                            }
+                        };
+                        nix_channel.SendMessage( JSON.stringify( newMsg ) );
+                        break;
+    
+                    /******************
+                     *  FIM
+                     *  
+                     *  'msg' is the full tunnel URI for the sibling client.
+                     *  Some browsers allow this iframe to access the sibling
+                     *  client's tunnel iframe. From there, we can put a fake
+                     *  publish message on the tunnel hash. The FIM impl should
+                     *  notice that the security token does not match what is
+                     *  expected.
+                     ******************/
+    
+                    case "FIM":
+                        var caught = false;
+                        // forge a publish message
+                        var forgedMsg = decodeURIComponent( msg ).split("#")[0] + "#" +
+                                "404169-1a3bt2Ei103y=dis&t=topic1&h=%7B%22s%22%3A%220%22%2C%22f%22%3A%22S%22%7D&p%3DI'm%20bad!";
+                        try {
+                            var clientTunnel = window.parent.frames["TEST_CLIENT"].frames["3827816c-f3b1-11db-8314-0800200c9a66"];
+                            clientTunnel.location.replace( forgedMsg );
+                        } catch( e ) {
+                            // Not allowed to access sibling client's tunnel.
+                            // This is considered a 'pass' for the test.
+                            caught = true;
+                            test.sendMsg( "passed" );
+                        }
+                        
+                        // Some older versions of Safari don't throw an exception
+                        // when trying to make an "unsafe" access to a sibling
+                        // iframe from a different domain. In order to handle
+                        // that, we just assume that the test has passed if no
+                        // security alert is caught on the container side.
+                        if ( ! caught && navigator.appVersion.indexOf("Safari") !== -1 ) {
+                            setTimeout( function() {
+                                test.sendMsg( "passed" );
+                            }, 500 );
+                        }
+                        break;
+                    
+                    }
+                });
+                
+            });
+        }
+    </script>
+</head>
+
+<body onload="init();">
+</body>
+</html>
