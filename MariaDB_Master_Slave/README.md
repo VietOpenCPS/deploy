@@ -112,9 +112,10 @@ scp forslave.sql > root@192.168.10.182:/tmp/
 ```
 - Add database service vào firewall
 ```
-firewall-cmd --add-service=mysql
-firewall-cmd --add-service=mysql --permanent
-firewall-cmd –reload
+firewall-cmd --permanent --new-zone=mariadb
+firewall-cmd --permanent --zone=mariadb --add-port=3306/tcp
+firewall-cmd --permanent --zone=mariadb --add-source=192.168.10.182
+firewall-cmd --reload
 ```
 ####Cấu hình trên Slave Server:
 - Đăng nhập vào MariaDB (bằng password Root Database của Slave Server)
